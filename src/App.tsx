@@ -9,6 +9,7 @@ function App() {
   const resume = useResumeStore((state) => state.resume);
   const previewRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [previewScale, setPreviewScale] = useState<number>(0.7); // Default 70% scale
 
   const handleExtractPreview = () => {
     if (!previewRef.current) {
@@ -105,7 +106,39 @@ function App() {
             ⚡ React Preview → Serverless PDF Export
           </h2>
            
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {/* Preview Scale Control */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ 
+                fontSize: '14px', 
+                color: '#374151',
+                fontWeight: '500'
+              }}>
+                Zoom:
+              </label>
+              <select
+                value={previewScale}
+                onChange={(e) => setPreviewScale(parseFloat(e.target.value))}
+                style={{
+                  padding: '4px 8px',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  backgroundColor: 'white',
+                  cursor: 'pointer'
+                }}
+              >
+                <option value={0.5}>50%</option>
+                <option value={0.6}>60%</option>
+                <option value={0.7}>70%</option>
+                <option value={0.8}>80%</option>
+                <option value={0.9}>90%</option>
+                <option value={1.0}>100%</option>
+                <option value={1.1}>110%</option>
+                <option value={1.2}>120%</option>
+              </select>
+            </div>
+
             {/* Extract Preview HTML/CSS */}
             <button
               onClick={handleExtractPreview}
@@ -169,10 +202,17 @@ function App() {
         </div>
 
         {/* Resume Preview */}
-        <SimpleRollingPreview 
-          ref={previewRef}
-          resume={resume} 
-        />
+        <div style={{
+          transform: `scale(${previewScale})`,
+          transformOrigin: 'top center',
+          transition: 'transform 0.2s ease-in-out',
+          marginBottom: previewScale < 1 ? `${(1 - previewScale) * -100}%` : '0'
+        }}>
+          <SimpleRollingPreview 
+            ref={previewRef}
+            resume={resume} 
+          />
+        </div>
       </div>
     </div>
     </>
