@@ -174,19 +174,14 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
 }
 
 function App() {
-  const resume = useResumeStore((state) => state.resume);
-  const previewRef = useRef<HTMLDivElement>(null);
-  const [isExporting, setIsExporting] = useState<boolean>(false);
-  const [previewScale, setPreviewScale] = useState<number>(0.7); // Default 70% scale
+  const { resume, updateContent, updateFormat, updatePersonalInfo, updateSummary, selectedTemplateId } = useResumeStore();
+  
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
     localStorage.getItem('cviel_authenticated') === 'true'
   );
-
-  // Check authentication on component mount
-  useEffect(() => {
-    const authStatus = localStorage.getItem('cviel_authenticated');
-    setIsAuthenticated(authStatus === 'true');
-  }, []);
+  const [previewScale, setPreviewScale] = useState<number>(0.7); // Default 70% scale
+  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -197,27 +192,28 @@ function App() {
     setIsAuthenticated(false);
   };
 
-  const handleExtractPreview = async () => {
+  const handleExtractPreview = () => {
     if (!previewRef.current) {
       alert('Preview not found! Please wait for the preview to load.');
       return;
     }
 
     try {
-      console.log('🔍 Starting HTML/CSS extraction from preview...');
+      console.log('🎯 Step 1: Starting Preview extraction...');
+      const extractedContent = extractPreviewContent(previewRef.current, resume.format.pageSize);
       
-      // Wait for the async extraction to complete
-      const extractedContent = await extractPreviewContent(previewRef.current, resume.format.pageSize);
-      
+      // Log the extracted content to console for inspection
       logExtractedContent(extractedContent);
       
+      // Show a summary alert
       alert(`✅ Step 1: Extraction Complete!\n\n📄 Pages Found: ${extractedContent.pages.length}\n📄 Combined HTML: ${extractedContent.html.length} characters\n🎨 CSS: ${extractedContent.css.length} characters\n📋 Complete Document: ${extractedContent.completeDocument.length} characters\n\nCheck the browser console for details!\n\nClick OK to download the extracted HTML file.`);
       
-      // Trigger download
+      // Download the complete document
       downloadExtractedContent(extractedContent, 'step1-preview-extracted.html');
+      
     } catch (error) {
-      console.error('Failed to extract preview content:', error);
-      alert(`❌ Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('❌ Step 1: Extraction failed:', error);
+      alert(`❌ Step 1: Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -230,7 +226,32 @@ function App() {
     setIsExporting(true);
     
     try {
+      console.log('🚀 Starting PDF export process...');
+      console.log('📋 Current template:', selectedTemplateId);
+      console.log('📋 Preview element ready:', !!previewRef.current);
+      
+      // Add a small delay to ensure preview is fully rendered
+      // This helps prevent race conditions with template switching
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Validate that preview has content before export
+      if (!previewRef.current.textContent?.trim()) {
+        throw new Error('Preview appears to be empty. Please wait for content to load.');
+      }
+      
+      const contentLength = previewRef.current.textContent.length;
+      if (contentLength < 100) {
+        console.warn('⚠️ Preview has very little content:', contentLength, 'characters');
+      }
+      
       const filename = `${resume.content.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`;
+      
+      console.log('📄 Exporting with settings:', {
+        template: selectedTemplateId,
+        pageSize: resume.format.pageSize,
+        contentLength: contentLength,
+        filename: filename
+      });
       
       // Pass the user's selected page format to the PDF export
       await exportToPDF(previewRef.current, filename, {
@@ -239,6 +260,7 @@ function App() {
       
       alert(`✅ PDF exported successfully!\n\nYour PDF "${filename}" has been downloaded!`);
     } catch (error) {
+      console.error('❌ PDF export failed:', error);
       alert(`❌ Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsExporting(false);
