@@ -19,8 +19,8 @@ export async function exportToPDF(
   try {
     console.log('Starting PDF export...');
     
-    // Extract HTML from the preview component
-    const extractedData = extractPreviewContent(previewElement);
+    // Extract HTML from the preview component with the specified page format
+    const extractedData = extractPreviewContent(previewElement, options.format || 'A4');
     
     if (!extractedData.completeDocument) {
       throw new Error('Failed to extract HTML from preview');

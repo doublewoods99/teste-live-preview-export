@@ -13,7 +13,7 @@ interface ExtractedPage {
   pageNumber: number;
 }
 
-export function extractPreviewContent(previewElement: HTMLElement): ExtractedContent {
+export function extractPreviewContent(previewElement: HTMLElement, pageFormat: 'A4' | 'Letter' = 'A4'): ExtractedContent {
   if (!previewElement) {
     throw new Error('Preview element not found');
   }
@@ -25,7 +25,7 @@ export function extractPreviewContent(previewElement: HTMLElement): ExtractedCon
   const originalCSS = extractOriginalCSS();
 
   // Create a complete HTML document that preserves the exact Preview styling
-  const completeDocument = createOptimizedHTMLDocument(extractedPages, originalCSS);
+  const completeDocument = createOptimizedHTMLDocument(extractedPages, originalCSS, pageFormat);
 
   return {
     html: extractedPages.map(page => page.html).join('\n'),
@@ -105,7 +105,7 @@ function extractOriginalCSS(): string {
   return cssRules.join('\n');
 }
 
-function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string): string {
+function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFormat: 'A4' | 'Letter' = 'A4'): string {
   if (pages.length === 0) {
     return createSimpleHTMLDocument('', css);
   }
@@ -136,7 +136,7 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string): strin
     
     /* Ensure page divs break properly */
     @page {
-      size: A4;
+      size: ${pageFormat};
       margin: 0;
     }
     

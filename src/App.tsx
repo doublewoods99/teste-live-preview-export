@@ -18,7 +18,7 @@ function App() {
 
     try {
       console.log('🎯 Step 1: Starting Preview extraction...');
-      const extractedContent = extractPreviewContent(previewRef.current);
+      const extractedContent = extractPreviewContent(previewRef.current, resume.format.pageSize);
       
       // Log the extracted content to console for inspection
       logExtractedContent(extractedContent);
@@ -45,7 +45,12 @@ function App() {
     
     try {
       const filename = `${resume.content.personalInfo.name.replace(/\s+/g, '_')}_Resume.pdf`;
-      await exportToPDF(previewRef.current, filename);
+      
+      // Pass the user's selected page format to the PDF export
+      await exportToPDF(previewRef.current, filename, {
+        format: resume.format.pageSize
+      });
+      
       alert(`✅ PDF exported successfully!\n\nYour PDF "${filename}" has been downloaded!`);
     } catch (error) {
       alert(`❌ Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
