@@ -1,6 +1,4 @@
-export const config = {
-  runtime: 'nodejs20.x'
-};
+// Using default Node.js runtime for compatibility with Vercel Functions
 
 export default async function handler(request, response) {
   // Set CORS headers
