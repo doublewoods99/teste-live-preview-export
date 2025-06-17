@@ -42,13 +42,6 @@ export async function exportToPDF(
         options: {
           format: options.format || 'A4',
           printBackground: options.printBackground !== false,
-          margin: {
-            top: '20px',
-            right: '20px',
-            bottom: '20px',
-            left: '20px',
-            ...options.margin
-          }
         }
       }),
     });

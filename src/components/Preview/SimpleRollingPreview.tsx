@@ -36,23 +36,20 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
           if (measureRef.current) {
             const actualContentHeight = measureRef.current.scrollHeight;
             
-            // Add some tolerance to prevent unnecessary page breaks for small overflows
-            const tolerance = 20; // 20px tolerance
-            const effectiveContentHeight = contentHeight - tolerance;
+            // Remove tolerance to match PDF behavior exactly
+            // PDF generators don't use tolerance - they create breaks when content exceeds page height
+            const pagesNeeded = Math.ceil(actualContentHeight / contentHeight);
             
-            // Only create additional pages if content significantly exceeds page height
-            const pagesNeeded = actualContentHeight <= effectiveContentHeight ? 1 : 
-                               Math.ceil(actualContentHeight / contentHeight);
-            
-            // Only log when there's a significant change (reduce spam)
+            // Ensure minimum of 1 page
             const newPageCount = Math.max(1, pagesNeeded);
+            
+            // Always log pagination info for transparency
             if (newPageCount !== pageCount) {
-              console.log('📄 Page count updated:', {
+              console.log('📄 Page count updated (matching PDF behavior):', {
                 pages: newPageCount,
                 contentHeight: Math.round(actualContentHeight),
                 pageHeight: Math.round(contentHeight),
-                effectiveHeight: Math.round(effectiveContentHeight),
-                tolerance: tolerance,
+                ratio: Math.round((actualContentHeight / contentHeight) * 100) / 100,
                 reason: newPageCount > pageCount ? 'Content expanded' : 'Content reduced'
               });
             }
