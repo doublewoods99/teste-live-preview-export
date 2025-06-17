@@ -372,11 +372,7 @@ export function logExtractedContent(content: ExtractedContent) {
 }
 
 // Simple HTML extraction that just uses the already-rendered DOM
-export const extractHTMLForPDF = async (
-  templateComponent: React.ComponentType<any>,
-  resume: any,
-  selectedTemplateId: string
-): Promise<string> => {
+export const extractHTMLForPDF = async (): Promise<string> => {
   try {
     console.log('🔄 Extracting HTML for PDF (simplified approach)');
     

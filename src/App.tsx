@@ -1,34 +1,25 @@
-import { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { ResumeEditor } from './components/Editor/ResumeEditor';
 import { SimpleRollingPreview } from './components/Preview/SimpleRollingPreview';
 import { useResumeStore } from './context/resumeStore';
-import { extractPreviewContent, logExtractedContent, downloadExtractedContent } from './utils/htmlExtractor';
 import { exportToPDF } from './utils/pdfExporter';
+import './index.css';
 
 // Simple password configuration
-const SITE_PASSWORD = 'cviel2024'; // Change this to your desired password
+const SITE_PASSWORD = 'teste2024';
 
 function LoginForm({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
-
-    // Simulate a small delay for better UX
-    setTimeout(() => {
-      if (password === SITE_PASSWORD) {
-        localStorage.setItem('cviel_authenticated', 'true');
-        onLogin();
-      } else {
-        setError('Incorrect password. Please try again.');
-        setPassword('');
-      }
-      setIsLoading(false);
-    }, 500);
+    if (password === SITE_PASSWORD) {
+      localStorage.setItem('cviel_authenticated', 'true');
+      onLogin();
+    } else {
+      setError('Incorrect password. Please try again.');
+    }
   };
 
   return (
@@ -37,76 +28,69 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#f3f4f6'
+      backgroundColor: '#f8fafc'
     }}>
       <div style={{
         backgroundColor: 'white',
-        padding: '48px',
-        borderRadius: '12px',
-        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+        padding: '32px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         width: '100%',
-        maxWidth: '400px',
-        border: '1px solid #e5e7eb'
+        maxWidth: '400px'
       }}>
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: '700',
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <h1 style={{ 
+            fontSize: '24px', 
+            fontWeight: '600', 
             color: '#1f2937',
             margin: '0 0 8px 0'
           }}>
-            🔒 Access Required
+            🔐 Access Required
           </h1>
-          <p style={{
-            color: '#6b7280',
-            fontSize: '16px',
+          <p style={{ 
+            color: '#6b7280', 
+            fontSize: '14px',
             margin: 0
           }}>
-            This is a testing site. Please enter the password to continue.
+            Please enter the password to continue
           </p>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '14px',
-              fontWeight: '500',
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div>
+            <label style={{ 
+              display: 'block', 
+              fontSize: '14px', 
+              fontWeight: '500', 
               color: '#374151',
-              marginBottom: '8px'
+              marginBottom: '6px'
             }}>
               Password
             </label>
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              disabled={isLoading}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setError('');
+              }}
               style={{
                 width: '100%',
-                padding: '12px 16px',
-                border: `2px solid ${error ? '#ef4444' : '#d1d5db'}`,
-                borderRadius: '8px',
+                padding: '12px',
+                border: error ? '2px solid #ef4444' : '1px solid #d1d5db',
+                borderRadius: '6px',
                 fontSize: '16px',
-                transition: 'border-color 0.2s',
-                outline: 'none',
-                backgroundColor: isLoading ? '#f9fafb' : 'white'
+                boxSizing: 'border-box',
+                backgroundColor: '#ffffff'
               }}
-              onFocus={(e) => {
-                if (!error) e.target.style.borderColor = '#3b82f6';
-              }}
-              onBlur={(e) => {
-                if (!error) e.target.style.borderColor = '#d1d5db';
-              }}
-              autoFocus
+              placeholder="Enter password..."
+              required
             />
             {error && (
-              <p style={{
-                color: '#ef4444',
-                fontSize: '14px',
-                marginTop: '8px',
-                margin: '8px 0 0 0'
+              <p style={{ 
+                color: '#ef4444', 
+                fontSize: '14px', 
+                margin: '6px 0 0 0'
               }}>
                 {error}
               </p>
@@ -115,55 +99,35 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
 
           <button
             type="submit"
-            disabled={isLoading || !password.trim()}
             style={{
               width: '100%',
-              padding: '12px 24px',
-              backgroundColor: isLoading || !password.trim() ? '#9ca3af' : '#3b82f6',
+              padding: '12px',
+              backgroundColor: '#4f46e5',
               color: 'white',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '6px',
               fontSize: '16px',
-              fontWeight: '600',
-              cursor: isLoading || !password.trim() ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px'
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
             }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#4338ca'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#4f46e5'}
           >
-            {isLoading ? (
-              <>
-                <span style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid white',
-                  borderTopColor: 'transparent',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
-                Checking...
-              </>
-            ) : (
-              'Enter Site'
-            )}
+            🔓 Access Site
           </button>
         </form>
 
         <div style={{
-          marginTop: '24px',
+          marginTop: '20px',
           padding: '16px',
-          backgroundColor: '#f9fafb',
-          borderRadius: '8px',
-          border: '1px solid #e5e7eb'
+          backgroundColor: '#f3f4f6',
+          borderRadius: '6px',
+          fontSize: '12px',
+          color: '#6b7280',
+          textAlign: 'center'
         }}>
-          <p style={{
-            fontSize: '12px',
-            color: '#6b7280',
-            margin: 0,
-            textAlign: 'center'
-          }}>
+          <p style={{ margin: 0, lineHeight: 1.4 }}>
             💡 This password protects the testing environment.<br/>
             Contact the administrator if you need access.
           </p>
@@ -174,7 +138,7 @@ function LoginForm({ onLogin }: { onLogin: () => void }) {
 }
 
 function App() {
-  const { resume, updateContent, updateFormat, updatePersonalInfo, updateSummary, selectedTemplateId } = useResumeStore();
+  const { resume, selectedTemplateId } = useResumeStore();
   
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
     localStorage.getItem('cviel_authenticated') === 'true'
@@ -200,16 +164,20 @@ function App() {
 
     try {
       console.log('🎯 Step 1: Starting Preview extraction...');
-      const extractedContent = extractPreviewContent(previewRef.current, resume.format.pageSize);
+      
+      // Simple content extraction for debugging
+      const textContent = previewRef.current.textContent || '';
+      const htmlContent = previewRef.current.outerHTML;
       
       // Log the extracted content to console for inspection
-      logExtractedContent(extractedContent);
+      console.log('Extracted content:', {
+        textLength: textContent.length,
+        htmlLength: htmlContent.length,
+        preview: textContent.substring(0, 200) + '...'
+      });
       
       // Show a summary alert
-      alert(`✅ Step 1: Extraction Complete!\n\n📄 Pages Found: ${extractedContent.pages.length}\n📄 Combined HTML: ${extractedContent.html.length} characters\n🎨 CSS: ${extractedContent.css.length} characters\n📋 Complete Document: ${extractedContent.completeDocument.length} characters\n\nCheck the browser console for details!\n\nClick OK to download the extracted HTML file.`);
-      
-      // Download the complete document
-      downloadExtractedContent(extractedContent, 'step1-preview-extracted.html');
+      alert(`✅ Step 1: Extraction Complete!\n\n📄 Text Content: ${textContent.length} characters\n📄 HTML Content: ${htmlContent.length} characters\n\nCheck the browser console for details!`);
       
     } catch (error) {
       console.error('❌ Step 1: Extraction failed:', error);
@@ -440,10 +408,9 @@ function App() {
           transition: 'transform 0.2s ease-in-out',
           marginBottom: previewScale < 1 ? `${(1 - previewScale) * -100}%` : '0'
         }}>
-          <SimpleRollingPreview 
-            ref={previewRef}
-            resume={resume} 
-          />
+          <div ref={previewRef}>
+            <SimpleRollingPreview />
+          </div>
         </div>
       </div>
     </div>

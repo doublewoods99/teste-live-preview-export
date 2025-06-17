@@ -1,147 +1,123 @@
 import React from 'react';
 import type { ResumeSchema } from '../../types/resume';
-import { calculateLayoutMeasurements, PAGE } from '../../utils/layout/measurements';
 
 interface ReactComponentsProps {
   resume: ResumeSchema;
 }
 
-// React components for clean HTML preview rendering
-export const ResumePreviewComponents: React.FC<ReactComponentsProps> = ({ resume }) => {
-  const layout = calculateLayoutMeasurements(resume.format);
-
-  // Convert layout measurements to CSS styles for web display using proper DPI conversion
+export const ReactComponents: React.FC<ReactComponentsProps> = ({ resume }) => {
+  // Simple CSS using direct CSS units - let the browser handle everything!
   const styles = {
-    page: {
-      fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, "Times New Roman", serif' : 
-                  resume.format.fontFamily === 'Georgia' ? 'Georgia, serif' : 
-                  'Arial, sans-serif',
-      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
-      lineHeight: 1.4,
-      padding: `${PAGE.toPx(layout.marginTopPt)}px ${PAGE.toPx(layout.marginRightPt)}px ${PAGE.toPx(layout.marginBottomPt)}px ${PAGE.toPx(layout.marginLeftPt)}px`,
-      backgroundColor: '#ffffff',
-      width: `${PAGE.toPx(layout.pageWidthPt)}px`,
-      minHeight: `${PAGE.toPx(layout.pageHeightPt)}px`,
-      margin: '0 auto',
-      boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
-      borderRadius: '8px',
-      border: '1px solid #e5e7eb',
-    } as React.CSSProperties,
-    
+    container: {
+      fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
+                  resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
+                  'Arial, Helvetica, sans-serif',
+      fontSize: `${resume.format.fontSize}pt`,
+      lineHeight: resume.format.lineHeight,
+      color: '#333333',
+      margin: `${resume.format.margins.top}pt ${resume.format.margins.right}pt ${resume.format.margins.bottom}pt ${resume.format.margins.left}pt`,
+      boxSizing: 'border-box' as const,
+    },
     header: {
       textAlign: 'center' as const,
-      marginBottom: `${PAGE.toPx(layout.sectionSpacingPt)}px`,
-    } as React.CSSProperties,
-    
+      marginBottom: `${resume.format.sectionSpacing}pt`,
+      borderBottom: '2px solid #333333',
+      paddingBottom: `${resume.format.itemSpacing}pt`,
+    },
     name: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt * 1.5)}px`,
-      fontWeight: 'bold',
-      marginBottom: `${PAGE.toPx(layout.lineHeightPt * 0.5)}px`,
+      fontSize: `${resume.format.fontSize * 1.8}pt`,
+      fontWeight: '700',
+      marginBottom: `${resume.format.fontSize * resume.format.lineHeight * 0.5}pt`,
       color: '#333333',
       margin: 0,
-    } as React.CSSProperties,
-    
-    title: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
-      marginBottom: `${PAGE.toPx(layout.lineHeightPt)}px`,
-      color: '#666666',
-      margin: 0,
-    } as React.CSSProperties,
-    
-    contact: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt * 0.9)}px`,
-      color: '#666666',
-      margin: 0,
-    } as React.CSSProperties,
-    
-    sectionTitle: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt * 1.2)}px`,
-      fontWeight: 'bold',
       textTransform: 'uppercase' as const,
-      borderBottom: '0.5px solid #cccccc',
-      paddingBottom: '2px',
+      letterSpacing: '1px',
+    },
+    title: {
+      fontSize: `${resume.format.fontSize * 1.1}pt`,
+      marginBottom: `${resume.format.fontSize * resume.format.lineHeight}pt`,
+      color: '#666666',
       margin: 0,
-      marginBottom: `${PAGE.toPx(layout.itemSpacingPt)}px`,
-    } as React.CSSProperties,
-    
+      fontStyle: 'italic',
+    },
+    contact: {
+      fontSize: `${resume.format.fontSize * 0.9}pt`,
+      color: '#666666',
+      margin: 0,
+      display: 'flex',
+      justifyContent: 'center',
+      flexWrap: 'wrap' as const,
+      gap: '15px',
+    },
     section: {
-      marginBottom: `${PAGE.toPx(layout.sectionSpacingPt)}px`,
-    } as React.CSSProperties,
-    
+      marginBottom: `${resume.format.sectionSpacing}pt`,
+    },
+    sectionTitle: {
+      fontSize: `${resume.format.fontSize * 1.2}pt`,
+      fontWeight: '700',
+      textTransform: 'uppercase' as const,
+      marginBottom: `${resume.format.itemSpacing}pt`,
+      borderBottom: '1px solid #333333',
+      paddingBottom: '3px',
+      color: '#333333',
+      letterSpacing: '0.5px',
+    },
     jobTitle: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
-      fontWeight: 'bold',
-      marginBottom: `${PAGE.toPx(layout.itemSpacingPt * 0.5)}px`,
-      margin: 0,
-    } as React.CSSProperties,
-    
+      fontSize: `${resume.format.fontSize * 1.05}pt`,
+      fontWeight: '600',
+      marginBottom: `${resume.format.itemSpacing * 0.5}pt`,
+      color: '#333333',
+    },
     jobDetails: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt * 0.9)}px`,
+      fontSize: `${resume.format.fontSize * 0.9}pt`,
       color: '#666666',
+      marginBottom: `${resume.format.itemSpacing * 0.5}pt`,
+      fontStyle: 'italic',
+    },
+    bulletList: {
       margin: 0,
-      marginBottom: `${PAGE.toPx(layout.itemSpacingPt * 0.5)}px`,
-    } as React.CSSProperties,
-    
-    bulletPoint: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
-      marginBottom: `${PAGE.toPx(layout.itemSpacingPt * 0.25)}px`,
-      paddingLeft: '15px',
-      position: 'relative' as const,
-    } as React.CSSProperties,
-    
-    bulletText: {
-      margin: 0,
-    } as React.CSSProperties,
-    
-    bullet: {
-      position: 'absolute' as const,
-      left: '0',
-      top: '0',
-    } as React.CSSProperties,
-    
+      paddingLeft: '18px',
+    },
+    bulletItem: {
+      fontSize: `${resume.format.fontSize}pt`,
+      marginBottom: `${resume.format.itemSpacing * 0.3}pt`,
+      color: '#333333',
+      lineHeight: resume.format.lineHeight,
+    },
     eduTitle: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
-      fontWeight: 'bold',
-      margin: 0,
-    } as React.CSSProperties,
-    
+      fontSize: `${resume.format.fontSize * 1.05}pt`,
+      fontWeight: '600',
+      color: '#333333',
+    },
     eduDetails: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt * 0.9)}px`,
+      fontSize: `${resume.format.fontSize * 0.9}pt`,
       color: '#666666',
-      margin: 0,
-    } as React.CSSProperties,
-    
+      fontStyle: 'italic',
+    },
     skillsText: {
-      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
-      margin: 0,
-    } as React.CSSProperties,
-    
-    jobContainer: {
-      marginBottom: `${PAGE.toPx(layout.itemSpacingPt)}px`,
-    } as React.CSSProperties,
-    
-    eduContainer: {
-      marginBottom: `${PAGE.toPx(layout.itemSpacingPt)}px`,
-    } as React.CSSProperties,
+      fontSize: `${resume.format.fontSize}pt`,
+      color: '#333333',
+      lineHeight: 1.6,
+    },
   };
 
   return (
-    <div style={styles.page}>
-      {/* Header Section */}
+    <div style={styles.container}>
+      {/* Header */}
       <div style={styles.header}>
         <h1 style={styles.name}>{resume.content.personalInfo.name}</h1>
         {resume.content.personalInfo.title && (
-          <div style={styles.title}>{resume.content.personalInfo.title}</div>
+          <p style={styles.title}>{resume.content.personalInfo.title}</p>
         )}
-        <div style={styles.contact}>
+        <p style={styles.contact}>
           {resume.content.personalInfo.email} • {resume.content.personalInfo.phone} • {resume.content.personalInfo.location}
-        </div>
+        </p>
       </div>
 
       {/* Professional Summary */}
       {resume.content.summary && (
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>PROFESSIONAL SUMMARY</h2>
+          <h2 style={styles.sectionTitle}>Professional Summary</h2>
           <p style={{ margin: 0 }}>{resume.content.summary}</p>
         </div>
       )}
@@ -149,19 +125,22 @@ export const ResumePreviewComponents: React.FC<ReactComponentsProps> = ({ resume
       {/* Work Experience */}
       {resume.content.experience.length > 0 && (
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>WORK EXPERIENCE</h2>
+          <h2 style={styles.sectionTitle}>Professional Experience</h2>
           {resume.content.experience.map((job, index) => (
-            <div key={index} style={styles.jobContainer}>
+            <div key={index} style={{ marginBottom: `${resume.format.itemSpacing * 1.5}pt` }}>
               <div style={styles.jobTitle}>{job.position}</div>
               <div style={styles.jobDetails}>
                 {job.company} • {job.startDate} - {job.current ? 'Present' : job.endDate}
               </div>
-              {job.description.map((desc, descIndex) => (
-                <div key={descIndex} style={styles.bulletPoint}>
-                  <span style={styles.bullet}>•</span>
-                  <div style={styles.bulletText}>{desc}</div>
-                </div>
-              ))}
+              {job.description.length > 0 && (
+                <ul style={styles.bulletList}>
+                  {job.description.map((desc, descIndex) => (
+                    <li key={descIndex} style={styles.bulletItem}>
+                      {desc}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           ))}
         </div>
@@ -170,9 +149,9 @@ export const ResumePreviewComponents: React.FC<ReactComponentsProps> = ({ resume
       {/* Education */}
       {resume.content.education.length > 0 && (
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>EDUCATION</h2>
+          <h2 style={styles.sectionTitle}>Education</h2>
           {resume.content.education.map((edu, index) => (
-            <div key={index} style={styles.eduContainer}>
+            <div key={index} style={{ marginBottom: `${resume.format.itemSpacing}pt` }}>
               <div style={styles.eduTitle}>
                 {edu.degree} in {edu.field}
               </div>
@@ -188,10 +167,10 @@ export const ResumePreviewComponents: React.FC<ReactComponentsProps> = ({ resume
       {/* Skills */}
       {resume.content.skills.length > 0 && (
         <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>SKILLS</h2>
-          <div style={styles.skillsText}>
+          <h2 style={styles.sectionTitle}>Skills</h2>
+          <p style={styles.skillsText}>
             {resume.content.skills.join(' • ')}
-          </div>
+          </p>
         </div>
       )}
     </div>
