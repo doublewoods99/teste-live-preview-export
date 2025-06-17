@@ -369,4 +369,32 @@ export function logExtractedContent(content: ExtractedContent) {
   });
   
   console.groupEnd();
-} 
+}
+
+// Simple HTML extraction that just uses the already-rendered DOM
+export const extractHTMLForPDF = async (
+  templateComponent: React.ComponentType<any>,
+  resume: any,
+  selectedTemplateId: string
+): Promise<string> => {
+  try {
+    console.log('🔄 Extracting HTML for PDF (simplified approach)');
+    
+    // Use the existing DOM-based extraction approach but keep it simple
+    const previewElement = document.querySelector('[data-template-preview]') as HTMLElement;
+    
+    if (!previewElement) {
+      throw new Error('No preview element found for extraction');
+    }
+    
+    // Just extract the content with minimal processing
+    const content = extractPreviewContent(previewElement);
+    
+    console.log('✅ HTML extracted successfully (simplified)');
+    return content.completeDocument;
+    
+  } catch (error) {
+    console.error('❌ Failed to extract HTML:', error);
+    throw new Error(`HTML extraction failed: ${error}`);
+  }
+}; 

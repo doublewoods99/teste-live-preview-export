@@ -1,52 +1,47 @@
 import React from 'react';
 import type { ResumeSchema } from '../../types/resume';
-import { calculateLayoutMeasurements, PAGE } from '../../utils/layout/measurements';
 
 interface ClassicTemplateProps {
   resume: ResumeSchema;
 }
 
 export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({ resume }) => {
-  const layout = calculateLayoutMeasurements(resume.format);
-
-  // Use proper DPI conversion from measurements utility instead of hardcoded 1.35
-  const toPx = (pt: number) => `${PAGE.toPx(pt)}px`;
-
+  // Simple CSS using direct CSS units - let the browser handle everything!
   const styles = {
     container: {
       fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
                   resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
                   'Arial, Helvetica, sans-serif',
-      fontSize: toPx(layout.fontSizePt),
-      lineHeight: 1.4,
+      fontSize: `${resume.format.fontSize}pt`,
+      lineHeight: resume.format.lineHeight,
       color: '#333333',
-      padding: `${toPx(layout.marginTopPt)} ${toPx(layout.marginRightPt)} ${toPx(layout.marginBottomPt)} ${toPx(layout.marginLeftPt)}`,
+      margin: `${resume.format.margins.top}pt ${resume.format.margins.right}pt ${resume.format.margins.bottom}pt ${resume.format.margins.left}pt`,
       boxSizing: 'border-box' as const,
     },
     header: {
       textAlign: 'center' as const,
-      marginBottom: toPx(layout.sectionSpacingPt),
+      marginBottom: `${resume.format.sectionSpacing}pt`,
       borderBottom: '2px solid #333333',
-      paddingBottom: toPx(layout.itemSpacingPt),
+      paddingBottom: `${resume.format.itemSpacing}pt`,
     },
     name: {
-      fontSize: toPx(layout.fontSizePt * 1.8),
+      fontSize: `${resume.format.fontSize * 1.8}pt`,
       fontWeight: '700',
-      marginBottom: toPx(layout.lineHeightPt * 0.5),
+      marginBottom: `${resume.format.fontSize * resume.format.lineHeight * 0.5}pt`,
       color: '#333333',
       margin: 0,
       textTransform: 'uppercase' as const,
       letterSpacing: '1px',
     },
     title: {
-      fontSize: toPx(layout.fontSizePt * 1.1),
-      marginBottom: toPx(layout.lineHeightPt),
+      fontSize: `${resume.format.fontSize * 1.1}pt`,
+      marginBottom: `${resume.format.fontSize * resume.format.lineHeight}pt`,
       color: '#666666',
       margin: 0,
       fontStyle: 'italic',
     },
     contact: {
-      fontSize: toPx(layout.fontSizePt * 0.9),
+      fontSize: `${resume.format.fontSize * 0.9}pt`,
       color: '#666666',
       margin: 0,
       display: 'flex',
@@ -55,28 +50,28 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({ resume }) => {
       gap: '15px',
     },
     section: {
-      marginBottom: toPx(layout.sectionSpacingPt),
+      marginBottom: `${resume.format.sectionSpacing}pt`,
     },
     sectionTitle: {
-      fontSize: toPx(layout.fontSizePt * 1.2),
+      fontSize: `${resume.format.fontSize * 1.2}pt`,
       fontWeight: '700',
       textTransform: 'uppercase' as const,
-      marginBottom: toPx(layout.itemSpacingPt),
+      marginBottom: `${resume.format.itemSpacing}pt`,
       borderBottom: '1px solid #333333',
       paddingBottom: '3px',
       color: '#333333',
       letterSpacing: '0.5px',
     },
     jobTitle: {
-      fontSize: toPx(layout.fontSizePt * 1.05),
+      fontSize: `${resume.format.fontSize * 1.05}pt`,
       fontWeight: '600',
-      marginBottom: toPx(layout.itemSpacingPt * 0.5),
+      marginBottom: `${resume.format.itemSpacing * 0.5}pt`,
       color: '#333333',
     },
     jobDetails: {
-      fontSize: toPx(layout.fontSizePt * 0.9),
+      fontSize: `${resume.format.fontSize * 0.9}pt`,
       color: '#666666',
-      marginBottom: toPx(layout.itemSpacingPt * 0.5),
+      marginBottom: `${resume.format.itemSpacing * 0.5}pt`,
       fontStyle: 'italic',
     },
     bulletList: {
@@ -84,23 +79,23 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({ resume }) => {
       paddingLeft: '18px',
     },
     bulletItem: {
-      fontSize: toPx(layout.fontSizePt),
-      marginBottom: toPx(layout.itemSpacingPt * 0.3),
+      fontSize: `${resume.format.fontSize}pt`,
+      marginBottom: `${resume.format.itemSpacing * 0.3}pt`,
       color: '#333333',
-      lineHeight: 1.4,
+      lineHeight: resume.format.lineHeight,
     },
     eduTitle: {
-      fontSize: toPx(layout.fontSizePt * 1.05),
+      fontSize: `${resume.format.fontSize * 1.05}pt`,
       fontWeight: '600',
       color: '#333333',
     },
     eduDetails: {
-      fontSize: toPx(layout.fontSizePt * 0.9),
+      fontSize: `${resume.format.fontSize * 0.9}pt`,
       color: '#666666',
       fontStyle: 'italic',
     },
     skillsText: {
-      fontSize: toPx(layout.fontSizePt),
+      fontSize: `${resume.format.fontSize}pt`,
       color: '#333333',
       lineHeight: 1.6,
     },
@@ -134,7 +129,7 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({ resume }) => {
         <div style={styles.section}>
           <h2 style={styles.sectionTitle}>Professional Experience</h2>
           {resume.content.experience.map((job, index) => (
-            <div key={index} style={{ marginBottom: toPx(layout.itemSpacingPt * 1.5) }}>
+            <div key={index} style={{ marginBottom: `${resume.format.itemSpacing * 1.5}pt` }}>
               <div style={styles.jobTitle}>{job.position}</div>
               <div style={styles.jobDetails}>
                 {job.company} | {job.startDate} - {job.current ? 'Present' : job.endDate}
@@ -158,7 +153,7 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({ resume }) => {
         <div style={styles.section}>
           <h2 style={styles.sectionTitle}>Education</h2>
           {resume.content.education.map((edu, index) => (
-            <div key={index} style={{ marginBottom: toPx(layout.itemSpacingPt) }}>
+            <div key={index} style={{ marginBottom: `${resume.format.itemSpacing}pt` }}>
               <div style={styles.eduTitle}>
                 {edu.degree} in {edu.field}
               </div>
