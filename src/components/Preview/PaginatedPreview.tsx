@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { ResumeSchema } from '../../types/resume';
 import { calculateLayoutMeasurements } from '../../utils/layout/measurements';
-import { createPageBreakDetector } from '../../utils/layout/pagination';
+// import { createPageBreakDetector } from '../../utils/layout/pagination';
 import { createHeightCalculator } from '../../utils/layout/heightCalculation';
 
 interface PaginatedPreviewProps {
@@ -131,7 +131,8 @@ const PaginatedPreviewComponent = React.forwardRef<HTMLDivElement, PaginatedPrev
   // Debug: Log the content height
   console.log(`Content height: ${contentHeightPx}px, Page height: ${layout.pageHeightPt * 1.35}px`);
 
-  // Function to measure element height
+  // Function to measure element height (commented out - not currently used)
+  /*
   const measureElementHeight = (element: HTMLElement): number => {
     if (!measureRef.current) return 0;
     
@@ -151,6 +152,7 @@ const PaginatedPreviewComponent = React.forwardRef<HTMLDivElement, PaginatedPrev
     
     return height;
   };
+  */
 
   // Function to create page content with overflow handling
   const createPaginatedContent = (): PageContent[] => {

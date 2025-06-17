@@ -111,7 +111,7 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string): strin
   }
 
   // Create clean page structure for PDF - each page should fit exactly on PDF page
-  const combinedHTML = pages.map((page, index) => {
+  const combinedHTML = pages.map((page) => {
     // Remove the wrapper div styling from the original page and just use the content
     return page.html;
   }).join('\n\n');
@@ -209,7 +209,7 @@ export function logExtractedContent(content: ExtractedContent) {
   console.log('🎨 CSS Length:', content.css.length, 'characters');
   console.log('📋 Complete Document Length:', content.completeDocument.length, 'characters');
   
-  content.pages.forEach((page, index) => {
+  content.pages.forEach((page) => {
     console.log(`📄 Page ${page.pageNumber}: ${page.html.length} characters`);
   });
   

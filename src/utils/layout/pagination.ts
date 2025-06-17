@@ -41,7 +41,6 @@ export class PaginationCalculator {
   }
 
   private getFontFamily(): string {
-    const format = this.layout;
     // This should be derived from the format, but we'll use a sensible default
     return 'Arial, sans-serif';
   }

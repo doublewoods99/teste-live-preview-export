@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { ResumeEditor } from './components/Editor/ResumeEditor';
 import { SimpleRollingPreview } from './components/Preview/SimpleRollingPreview';
 import { useResumeStore } from './context/resumeStore';

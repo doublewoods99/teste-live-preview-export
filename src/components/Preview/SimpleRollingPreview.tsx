@@ -17,8 +17,8 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
     const template = getTemplate(selectedTemplateId);
     const layout = calculateLayoutMeasurements(resume.format);
     
-    // Convert pt to px
-    const toPx = (pt: number) => `${pt * 1.35}px`;
+    // Convert pt to px (for future use)
+    // const toPx = (pt: number) => `${pt * 1.35}px`;
     
     // Page dimensions - templates handle their own margins
     const pageWidth = layout.pageWidthPt * 1.35;

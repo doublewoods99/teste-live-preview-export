@@ -14,7 +14,7 @@ interface ResumeStore {
   resetToDefault: () => void;
 }
 
-export const useResumeStore = create<ResumeStore>((set, get) => ({
+export const useResumeStore = create<ResumeStore>((set, _get) => ({
   resume: defaultResumeSchema,
   selectedTemplateId: getDefaultTemplateId(),
   

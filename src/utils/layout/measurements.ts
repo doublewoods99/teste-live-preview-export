@@ -375,7 +375,7 @@ export function createLineBoxOverlay(textElement: HTMLElement, text: string, lay
   overlay.style.pointerEvents = 'none';
   overlay.style.zIndex = '999';
   
-  lines.forEach((line, index) => {
+  lines.forEach((_line, index) => {
     const lineBox = document.createElement('div');
     lineBox.style.position = 'absolute';
     lineBox.style.top = `${index * layout.lineHeightPx}px`;
