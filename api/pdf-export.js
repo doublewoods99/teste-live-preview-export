@@ -20,6 +20,11 @@ async function getBrowser() {
       const executablePath = await chromium.executablePath();
       console.log('Chromium executable path:', executablePath);
       
+      // Set essential environment variables for compatibility
+      if (!process.env.AWS_LAMBDA_JS_RUNTIME) {
+        process.env.AWS_LAMBDA_JS_RUNTIME = 'nodejs22.x';
+      }
+      
       const browser = await puppeteerCore.launch({
         args: [
           ...chromium.args,
@@ -28,7 +33,11 @@ async function getBrowser() {
           '--disable-dev-shm-usage',
           '--disable-accelerated-2d-canvas',
           '--disable-gpu',
-          '--disable-web-security'
+          '--disable-web-security',
+          '--disable-features=VizDisplayCompositor',
+          '--disable-background-timer-throttling',
+          '--disable-backgrounding-occluded-windows',
+          '--disable-renderer-backgrounding'
         ],
         defaultViewport: chromium.defaultViewport,
         executablePath,
