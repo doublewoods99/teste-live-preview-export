@@ -9,14 +9,20 @@ export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({ resume }) => {
   // Simple CSS using direct CSS units - let the browser handle everything!
   const styles = {
     container: {
-      fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
-                  resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
-                  'Arial, Helvetica, sans-serif',
+      fontFamily: resume.format.fontFamily === 'Times New Roman' ? 
+                  '"Times New Roman", Times, "Liberation Serif", serif' : 
+                  resume.format.fontFamily === 'Georgia' ? 
+                  'Georgia, "Times New Roman", Times, serif' : 
+                  'Arial, "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif',
       fontSize: `${resume.format.fontSize}pt`,
       lineHeight: resume.format.lineHeight,
       color: '#333333',
       margin: `${resume.format.margins.top}pt ${resume.format.margins.right}pt ${resume.format.margins.bottom}pt ${resume.format.margins.left}pt`,
       boxSizing: 'border-box' as const,
+      // Ensure consistent font rendering
+      WebkitFontSmoothing: 'antialiased' as const,
+      MozOsxFontSmoothing: 'grayscale' as const,
+      textRendering: 'optimizeLegibility' as const,
     },
     header: {
       textAlign: 'center' as const,

@@ -178,14 +178,30 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       box-sizing: border-box;
     }
     
+    /* Force consistent fonts between preview and PDF */
+    @font-face {
+      font-family: 'Arial';
+      src: local('Arial'), local('ArialMT'), 
+           local('Helvetica'), local('HelveticaNeue');
+      font-display: swap;
+    }
+    
+    @font-face {
+      font-family: 'Times';
+      src: local('Times'), local('Times New Roman'), 
+           local('TimesNewRomanPSMT'), local('serif');
+      font-display: swap;
+    }
+    
     body {
       margin: 0 !important;
       padding: 0 !important;
       background: white !important;
       display: block !important;
-      font-size: inherit !important;
-      line-height: inherit !important;
-      font-family: inherit !important;
+      /* Force consistent font metrics */
+      font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif !important;
+      font-size: 11pt !important;
+      line-height: 1.4 !important;
       /* Ensure consistent font rendering between preview and PDF */
       -webkit-print-color-adjust: exact !important;
       color-adjust: exact !important;
@@ -193,12 +209,17 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       text-rendering: optimizeLegibility !important;
       -webkit-font-smoothing: antialiased !important;
       -moz-osx-font-smoothing: grayscale !important;
+      /* Prevent font scaling */
+      -webkit-text-size-adjust: 100% !important;
+      -ms-text-size-adjust: 100% !important;
     }
     
     /* PDF page settings - no margins since template handles them */
     @page {
       size: ${pageFormat};
       margin: 0;
+      /* Force consistent DPI */
+      -webkit-print-color-adjust: exact;
     }
     
     /* Page break controls for PDF */
