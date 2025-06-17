@@ -13,26 +13,32 @@ interface ExtractedPage {
   pageNumber: number;
 }
 
-export function extractPreviewContent(previewElement: HTMLElement, pageFormat: 'A4' | 'Letter' = 'A4'): ExtractedContent {
+export async function extractPreviewContent(previewElement: HTMLElement, pageFormat: 'A4' | 'Letter' = 'A4'): Promise<ExtractedContent> {
   if (!previewElement) {
     throw new Error('Preview element not found');
   }
 
-  // Extract individual pages from the preview
-  const extractedPages = extractIndividualPages(previewElement);
-  
-  // Get all the CSS from the document's stylesheets
-  const originalCSS = extractOriginalCSS();
+  // Wait for any ongoing layout calculations to complete
+  return new Promise<ExtractedContent>((resolve) => {
+    // Small delay to ensure DOM is stable and all transforms are applied
+    setTimeout(() => {
+      // Extract individual pages from the preview
+      const extractedPages = extractIndividualPages(previewElement);
+      
+      // Get all the CSS from the document's stylesheets
+      const originalCSS = extractOriginalCSS();
 
-  // Create a complete HTML document that preserves the exact Preview styling
-  const completeDocument = createOptimizedHTMLDocument(extractedPages, originalCSS, pageFormat);
+      // Create a complete HTML document that preserves the exact Preview styling
+      const completeDocument = createOptimizedHTMLDocument(extractedPages, originalCSS, pageFormat);
 
-  return {
-    html: extractedPages.map(page => page.html).join('\n'),
-    css: originalCSS,
-    completeDocument,
-    pages: extractedPages
-  };
+      resolve({
+        html: extractedPages.map(page => page.html).join('\n'),
+        css: originalCSS,
+        completeDocument,
+        pages: extractedPages
+      });
+    }, 200); // Increased delay to ensure stability
+  });
 }
 
 function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
@@ -67,77 +73,56 @@ function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
     return extractedPages;
   }
 
-  // Handle based on number of pages found
-  if (pageElements.length === 1) {
-    // Single page - extract the full content cleanly
-    const pageElement = pageElements[0];
-    const clonedPage = pageElement.cloneNode(true) as HTMLElement;
+  // IMPORTANT: Always extract just the first page's content for PDF
+  // The PDF engine will handle natural page breaks - we don't want duplicated content
+  const firstPageElement = pageElements[0];
+  const clonedPage = firstPageElement.cloneNode(true) as HTMLElement;
+  
+  // Clean up page numbers and preview-specific styling
+  const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
+  pageNumbers.forEach(pageNum => {
+    if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
+      pageNum.remove();
+    }
+  });
+  
+  // Check if this is multi-page with transforms (remove transform for PDF)
+  const contentDiv = clonedPage.querySelector('div[style*="transform"]') as HTMLElement;
+  if (contentDiv && pageElements.length > 1) {
+    // This is multi-page - clean up the transform but preserve template structure
+    contentDiv.style.transform = '';
+    contentDiv.style.position = 'relative';
     
-    // Clean up page numbers and preview-specific styling
-    const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
-    pageNumbers.forEach(pageNum => {
-      if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
-        pageNum.remove();
+    // Remove any preview-specific transforms but keep the template container structure
+    const allTransformedElements = clonedPage.querySelectorAll('*[style*="transform"]');
+    allTransformedElements.forEach(el => {
+      const element = el as HTMLElement;
+      element.style.transform = '';
+      if (element.style.position === 'absolute') {
+        element.style.position = 'relative';
       }
     });
     
-    // Remove preview-specific styling but keep layout
-    clonedPage.style.boxShadow = 'none';
-    clonedPage.style.border = 'none';
-    clonedPage.style.overflow = 'visible';
-    
-    extractedPages.push({
-      html: clonedPage.outerHTML,
-      pageNumber: 1
-    });
-    
-    console.log(`✅ Extracted single page content (${clonedPage.textContent?.length} characters)`);
+    console.log(`✅ Cleaned multi-page transforms (${pageElements.length} preview pages) while preserving template structure`);
   } else {
-    // Multi-page - handle each page properly
-    console.log(`📄 Processing ${pageElements.length} pages for extraction`);
-    
-    pageElements.forEach((pageElement, index) => {
-      const clonedPage = pageElement.cloneNode(true) as HTMLElement;
-      
-      // Clean up page numbers
-      const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
-      pageNumbers.forEach(pageNum => {
-        if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
-          pageNum.remove();
-        }
-      });
-      
-      // For multi-page, we need to respect the transform-based content
-      // The preview uses transform to show different portions of the content
-      const contentDiv = clonedPage.querySelector('div[style*="transform"]') as HTMLElement;
-      if (contentDiv) {
-        // Keep the transformed content but make it PDF-ready
-        const templateContent = contentDiv.cloneNode(true) as HTMLElement;
-        
-        // Remove the transform - PDF will handle pagination naturally
-        templateContent.style.transform = '';
-        templateContent.style.position = 'relative';
-        
-        // Replace the cloned page content with the cleaned template content
-        clonedPage.innerHTML = templateContent.innerHTML;
-      }
-      
-      // Clean up preview-specific styling
-      clonedPage.style.transform = '';
-      clonedPage.style.overflow = 'visible';
-      clonedPage.style.position = 'relative';
-      clonedPage.style.boxShadow = 'none';
-      clonedPage.style.border = 'none';
-      
-      extractedPages.push({
-        html: clonedPage.outerHTML,
-        pageNumber: index + 1
-      });
-      
-      console.log(`✅ Extracted page ${index + 1} content (${clonedPage.textContent?.length} characters)`);
-    });
+    // Single page - content is already clean
+    console.log(`✅ Extracted single page content`);
   }
-
+  
+  // Clean up preview-specific styling for PDF
+  clonedPage.style.boxShadow = 'none';
+  clonedPage.style.border = 'none';
+  clonedPage.style.overflow = 'visible';
+  clonedPage.style.transform = '';
+  clonedPage.style.position = 'relative';
+  
+  // Always return as single page - PDF engine will create natural page breaks
+  extractedPages.push({
+    html: clonedPage.outerHTML,
+    pageNumber: 1
+  });
+  
+  console.log(`✅ Final extraction: 1 clean page for PDF (${clonedPage.textContent?.length} characters)`);
   return extractedPages;
 }
 
@@ -167,13 +152,10 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
     return createSimpleHTMLDocument('', css);
   }
 
-  // Create clean page structure for PDF - each page should fit exactly on PDF page
-  const combinedHTML = pages.map((page, index) => {
-    // For single page, don't add page break classes
-    // For multi-page, add page break classes except for the last page
-    const pageBreakClass = pages.length > 1 && index < pages.length - 1 ? 'pdf-page-break' : '';
-    
-    return `<div class="pdf-page ${pageBreakClass}" data-page="${index + 1}">
+  // Create clean single-page structure for PDF - let PDF engine handle natural page breaks
+  const combinedHTML = pages.map((page) => {
+    // No page break classes - let content flow naturally and PDF engine will paginate
+    return `<div class="pdf-page" data-page="${page.pageNumber}">
       ${page.html}
     </div>`;
   }).join('\n\n');
@@ -216,7 +198,7 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       margin: 0;
     }
     
-    /* Page break controls for PDF */
+    /* Single clean page for PDF */
     .pdf-page {
       width: 100%;
       background: white;
@@ -225,11 +207,8 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       box-sizing: border-box;
       /* Force exact font metrics matching preview */
       font-synthesis: none !important;
-    }
-    
-    .pdf-page-break {
-      page-break-after: always !important;
-      break-after: page !important;
+      /* Let content flow naturally - no forced page breaks */
+      page-break-inside: auto;
     }
     
     /* Remove any preview-specific styling that could interfere */
@@ -268,7 +247,6 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
-        height: 100vh !important;
       }
       
       /* Ensure no print scaling */

@@ -197,28 +197,27 @@ function App() {
     setIsAuthenticated(false);
   };
 
-  const handleExtractPreview = () => {
+  const handleExtractPreview = async () => {
     if (!previewRef.current) {
       alert('Preview not found! Please wait for the preview to load.');
       return;
     }
 
     try {
-      console.log('🎯 Step 1: Starting Preview extraction...');
-      const extractedContent = extractPreviewContent(previewRef.current, resume.format.pageSize);
+      console.log('🔍 Starting HTML/CSS extraction from preview...');
       
-      // Log the extracted content to console for inspection
+      // Wait for the async extraction to complete
+      const extractedContent = await extractPreviewContent(previewRef.current, resume.format.pageSize);
+      
       logExtractedContent(extractedContent);
       
-      // Show a summary alert
       alert(`✅ Step 1: Extraction Complete!\n\n📄 Pages Found: ${extractedContent.pages.length}\n📄 Combined HTML: ${extractedContent.html.length} characters\n🎨 CSS: ${extractedContent.css.length} characters\n📋 Complete Document: ${extractedContent.completeDocument.length} characters\n\nCheck the browser console for details!\n\nClick OK to download the extracted HTML file.`);
       
-      // Download the complete document
+      // Trigger download
       downloadExtractedContent(extractedContent, 'step1-preview-extracted.html');
-      
     } catch (error) {
-      console.error('❌ Step 1: Extraction failed:', error);
-      alert(`❌ Step 1: Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to extract preview content:', error);
+      alert(`❌ Extraction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
