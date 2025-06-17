@@ -1,15 +1,201 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { ResumeEditor } from './components/Editor/ResumeEditor';
 import { SimpleRollingPreview } from './components/Preview/SimpleRollingPreview';
 import { useResumeStore } from './context/resumeStore';
 import { extractPreviewContent, logExtractedContent, downloadExtractedContent } from './utils/htmlExtractor';
 import { exportToPDF } from './utils/pdfExporter';
 
+// Simple password configuration
+const SITE_PASSWORD = 'cviel2024'; // Change this to your desired password
+
+function LoginForm({ onLogin }: { onLogin: () => void }) {
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+
+    // Simulate a small delay for better UX
+    setTimeout(() => {
+      if (password === SITE_PASSWORD) {
+        localStorage.setItem('cviel_authenticated', 'true');
+        onLogin();
+      } else {
+        setError('Incorrect password. Please try again.');
+        setPassword('');
+      }
+      setIsLoading(false);
+    }, 500);
+  };
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#f3f4f6'
+    }}>
+      <div style={{
+        backgroundColor: 'white',
+        padding: '48px',
+        borderRadius: '12px',
+        boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
+        width: '100%',
+        maxWidth: '400px',
+        border: '1px solid #e5e7eb'
+      }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <h1 style={{
+            fontSize: '28px',
+            fontWeight: '700',
+            color: '#1f2937',
+            margin: '0 0 8px 0'
+          }}>
+            🔒 Access Required
+          </h1>
+          <p style={{
+            color: '#6b7280',
+            fontSize: '16px',
+            margin: 0
+          }}>
+            This is a testing site. Please enter the password to continue.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{
+              display: 'block',
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#374151',
+              marginBottom: '8px'
+            }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              disabled={isLoading}
+              style={{
+                width: '100%',
+                padding: '12px 16px',
+                border: `2px solid ${error ? '#ef4444' : '#d1d5db'}`,
+                borderRadius: '8px',
+                fontSize: '16px',
+                transition: 'border-color 0.2s',
+                outline: 'none',
+                backgroundColor: isLoading ? '#f9fafb' : 'white'
+              }}
+              onFocus={(e) => {
+                if (!error) e.target.style.borderColor = '#3b82f6';
+              }}
+              onBlur={(e) => {
+                if (!error) e.target.style.borderColor = '#d1d5db';
+              }}
+              autoFocus
+            />
+            {error && (
+              <p style={{
+                color: '#ef4444',
+                fontSize: '14px',
+                marginTop: '8px',
+                margin: '8px 0 0 0'
+              }}>
+                {error}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading || !password.trim()}
+            style={{
+              width: '100%',
+              padding: '12px 24px',
+              backgroundColor: isLoading || !password.trim() ? '#9ca3af' : '#3b82f6',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '600',
+              cursor: isLoading || !password.trim() ? 'not-allowed' : 'pointer',
+              transition: 'background-color 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px'
+            }}
+          >
+            {isLoading ? (
+              <>
+                <span style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid white',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} />
+                Checking...
+              </>
+            ) : (
+              'Enter Site'
+            )}
+          </button>
+        </form>
+
+        <div style={{
+          marginTop: '24px',
+          padding: '16px',
+          backgroundColor: '#f9fafb',
+          borderRadius: '8px',
+          border: '1px solid #e5e7eb'
+        }}>
+          <p style={{
+            fontSize: '12px',
+            color: '#6b7280',
+            margin: 0,
+            textAlign: 'center'
+          }}>
+            💡 This password protects the testing environment.<br/>
+            Contact the administrator if you need access.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const resume = useResumeStore((state) => state.resume);
   const previewRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [previewScale, setPreviewScale] = useState<number>(0.7); // Default 70% scale
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    localStorage.getItem('cviel_authenticated') === 'true'
+  );
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const authStatus = localStorage.getItem('cviel_authenticated');
+    setIsAuthenticated(authStatus === 'true');
+  }, []);
+
+  const handleLogin = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('cviel_authenticated');
+    setIsAuthenticated(false);
+  };
 
   const handleExtractPreview = () => {
     if (!previewRef.current) {
@@ -60,6 +246,11 @@ function App() {
     }
   };
 
+  // Show login form if not authenticated
+  if (!isAuthenticated) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
+
   return (
     <>
       <style>
@@ -107,6 +298,26 @@ function App() {
           </h2>
            
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              style={{
+                padding: '6px 12px',
+                backgroundColor: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: '500',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+              onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+              title="Logout from testing site"
+            >
+              🔓 Logout
+            </button>
             {/* Preview Scale Control */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <label style={{ 
