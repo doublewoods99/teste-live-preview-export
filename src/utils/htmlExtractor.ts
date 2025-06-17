@@ -92,10 +92,9 @@ function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
   // Clone the preview element and clean it up for PDF
   const clonedElement = previewElement.cloneNode(true) as HTMLElement;
   
-  // Remove any preview-specific styling
+  // Only remove preview-specific styling, preserve template styles
   clonedElement.style.transform = '';
   clonedElement.style.boxShadow = 'none';
-  clonedElement.style.border = 'none';
   clonedElement.style.overflow = 'visible';
   clonedElement.style.margin = '0';
   clonedElement.style.padding = '0';
@@ -103,12 +102,26 @@ function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
   // Remove the data attribute as it's not needed in PDF
   clonedElement.removeAttribute('data-template-preview');
   
+  // Preserve all inline styles by ensuring they're not stripped
+  // The templates use inline styles for decorative elements
+  const allElements = clonedElement.querySelectorAll('*');
+  allElements.forEach(element => {
+    const htmlElement = element as HTMLElement;
+    // Don't modify inline styles - these contain the template's decorative styling
+    // Only remove specific preview-related properties if they exist
+    if (htmlElement.style.transform) htmlElement.style.transform = '';
+    if (htmlElement.style.boxShadow && htmlElement.style.boxShadow.includes('rgba(0, 0, 0, 0.1)')) {
+      htmlElement.style.boxShadow = 'none';
+    }
+  });
+  
   const extractedPages: ExtractedPage[] = [{
     html: clonedElement.outerHTML,
     pageNumber: 1
   }];
   
   console.log(`✅ Extracted simplified content (${clonedElement.textContent?.length} characters)`);
+  console.log(`📋 Preserved inline styles for template decorative elements`);
   
   return extractedPages;
 }
@@ -197,6 +210,8 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       box-sizing: border-box;
       /* Force exact font metrics matching preview */
       font-synthesis: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
     
     .pdf-page-break {
@@ -204,17 +219,11 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       break-after: page !important;
     }
     
-    /* Remove any preview-specific styling that could interfere */
-    .pdf-page * {
-      transform: none !important;
+    /* Only remove preview-specific styling, preserve template decorative elements */
+    .pdf-page[data-template-preview] {
       box-shadow: none !important;
-      border: none !important;
-    }
-    
-    /* Ensure consistent spacing - critical for layout matching */
-    .pdf-page {
-      margin: 0 !important;
-      padding: 0 !important;
+      transform: none !important;
+      /* Don't remove borders - those are template decorative elements! */
     }
     
     /* Force consistent font metrics across all text elements */
