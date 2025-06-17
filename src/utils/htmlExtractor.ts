@@ -198,10 +198,7 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       padding: 0 !important;
       background: white !important;
       display: block !important;
-      /* Force consistent font metrics */
-      font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif !important;
-      font-size: 11pt !important;
-      line-height: 1.4 !important;
+      /* Don't override font - let template handle its own fonts */
       /* Ensure consistent font rendering between preview and PDF */
       -webkit-print-color-adjust: exact !important;
       color-adjust: exact !important;

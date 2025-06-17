@@ -22,12 +22,17 @@ export const SimpleRollingPreview: React.FC<SimpleRollingPreviewProps> = ({ clas
       className={className}
       data-template-preview
       style={{
-        width: '100%',
+        width: '8.5in',      // Exact Letter size width
+        minHeight: '11in',   // Exact Letter size height
         maxWidth: '8.5in',
         backgroundColor: 'white',
         margin: '0 auto',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        overflow: 'auto',
+        overflow: 'visible',
+        // Ensure consistent box model
+        boxSizing: 'border-box',
+        // Match PDF page exactly
+        padding: '0',
+        // Remove conflicting font - let template handle its own fonts
       }}
     >
       <TemplateComponent resume={resume} />
