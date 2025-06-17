@@ -62,11 +62,13 @@ function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
   
   const extractedPages: ExtractedPage[] = [];
 
-  pageElements.forEach((pageElement, index) => {
-    // Clone the page element to avoid modifying the original
+  // Special handling for single page vs multi-page
+  if (pageElements.length === 1) {
+    // Single page - extract the full content
+    const pageElement = pageElements[0];
     const clonedPage = pageElement.cloneNode(true) as HTMLElement;
     
-    // Clean up any page numbers or artifacts that shouldn't be in PDF
+    // Clean up page numbers
     const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
     pageNumbers.forEach(pageNum => {
       if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
@@ -74,17 +76,41 @@ function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
       }
     });
     
-    // For SimpleRollingPreview, extract the actual content from the transformed div
+    // For single page, there's no transform, so just clean up the container
+    clonedPage.style.boxShadow = 'none';
+    clonedPage.style.border = 'none';
+    clonedPage.style.overflow = 'visible';
+    
+    extractedPages.push({
+      html: clonedPage.outerHTML,
+      pageNumber: 1
+    });
+    
+    console.log(`✅ Extracted single page with ${clonedPage.textContent?.length} characters`);
+  } else {
+    // Multi-page - extract only the first page to avoid duplication
+    // The PDF should only contain the content that actually fits, not duplicates
+    const firstPage = pageElements[0];
+    const clonedPage = firstPage.cloneNode(true) as HTMLElement;
+    
+    // Clean up page numbers
+    const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
+    pageNumbers.forEach(pageNum => {
+      if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
+        pageNum.remove();
+      }
+    });
+    
+    // For multi-page, extract the content from the transformed div but remove transform
     const contentDiv = clonedPage.querySelector('div[style*="transform"]');
     if (contentDiv) {
-      // Remove the transform and extract just the template content
       const templateContent = contentDiv.cloneNode(true) as HTMLElement;
       templateContent.style.transform = '';
       
       // Replace the cloned page with just the template content
       clonedPage.innerHTML = templateContent.innerHTML;
       
-      // Apply the same styling as the original page but without transforms
+      // Apply clean styling
       clonedPage.style.transform = '';
       clonedPage.style.overflow = 'visible';
       clonedPage.style.position = 'relative';
@@ -94,11 +120,12 @@ function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
     
     extractedPages.push({
       html: clonedPage.outerHTML,
-      pageNumber: index + 1
+      pageNumber: 1
     });
     
-    console.log(`✅ Extracted page ${index + 1} with ${clonedPage.textContent?.length} characters`);
-  });
+    console.log(`✅ Extracted multi-page content (first page only) with ${clonedPage.textContent?.length} characters`);
+    console.log(`⚠️  Note: Multi-page content detected, but PDF will contain all content on single page for proper rendering`);
+  }
 
   return extractedPages;
 }

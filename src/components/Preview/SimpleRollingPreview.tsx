@@ -35,7 +35,14 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
         const measureTimeout = setTimeout(() => {
           if (measureRef.current) {
             const actualContentHeight = measureRef.current.scrollHeight;
-            const pagesNeeded = Math.ceil(actualContentHeight / contentHeight);
+            
+            // Add some tolerance to prevent unnecessary page breaks for small overflows
+            const tolerance = 20; // 20px tolerance
+            const effectiveContentHeight = contentHeight - tolerance;
+            
+            // Only create additional pages if content significantly exceeds page height
+            const pagesNeeded = actualContentHeight <= effectiveContentHeight ? 1 : 
+                               Math.ceil(actualContentHeight / contentHeight);
             
             // Only log when there's a significant change (reduce spam)
             const newPageCount = Math.max(1, pagesNeeded);
@@ -44,6 +51,8 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
                 pages: newPageCount,
                 contentHeight: Math.round(actualContentHeight),
                 pageHeight: Math.round(contentHeight),
+                effectiveHeight: Math.round(effectiveContentHeight),
+                tolerance: tolerance,
                 reason: newPageCount > pageCount ? 'Content expanded' : 'Content reduced'
               });
             }
@@ -88,9 +97,9 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
         </div>
 
         {/* Generate pages with improved page break simulation */}
-        {Array.from({ length: pageCount }, (_, pageIndex) => (
+        {pageCount === 1 ? (
+          // Single page - show full content without transforms
           <div
-            key={pageIndex + 1}
             style={{
               width: `${pageWidth}px`,
               height: `${pageHeight}px`,
@@ -98,7 +107,6 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               position: 'relative',
               overflow: 'hidden',
-              // Add subtle border to show page boundaries
               border: '1px solid #f0f0f0'
             }}
           >
@@ -114,15 +122,13 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
               padding: '2px 4px',
               borderRadius: '2px'
             }}>
-              Page {pageIndex + 1} of {pageCount}
+              Page 1 of 1
             </div>
 
-            {/* Content with proper offset for this page */}
+            {/* Full content for single page */}
             <div 
               style={{ 
-                transform: `translateY(-${pageIndex * pageHeight}px)`,
                 width: '100%',
-                // Ensure consistent font rendering with PDF export
                 fontSize: `${layout.fontSizePt * 1.35}px`,
                 lineHeight: 1.4,
                 fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
@@ -133,7 +139,54 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
               <TemplateComponent resume={resume} />
             </div>
           </div>
-        ))}
+        ) : (
+          // Multiple pages - use transform approach but extract unique content for PDF
+          Array.from({ length: pageCount }, (_, pageIndex) => (
+            <div
+              key={pageIndex + 1}
+              data-page-index={pageIndex}
+              style={{
+                width: `${pageWidth}px`,
+                height: `${pageHeight}px`,
+                backgroundColor: '#ffffff',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                position: 'relative',
+                overflow: 'hidden',
+                border: '1px solid #f0f0f0'
+              }}
+            >
+              {/* Page number */}
+              <div style={{
+                position: 'absolute',
+                bottom: '10px',
+                right: '20px',
+                fontSize: '10px',
+                color: '#999',
+                zIndex: 1000,
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                padding: '2px 4px',
+                borderRadius: '2px'
+              }}>
+                Page {pageIndex + 1} of {pageCount}
+              </div>
+
+              {/* Content with proper offset for this page */}
+              <div 
+                style={{ 
+                  transform: `translateY(-${pageIndex * pageHeight}px)`,
+                  width: '100%',
+                  fontSize: `${layout.fontSizePt * 1.35}px`,
+                  lineHeight: 1.4,
+                  fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
+                              resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
+                              'Arial, Helvetica, sans-serif'
+                }}
+              >
+                <TemplateComponent resume={resume} />
+              </div>
+            </div>
+          ))
+        )}
       </div>
     );
   }
