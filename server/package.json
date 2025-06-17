@@ -1,0 +1,19 @@
+{
+  "name": "resume-pdf-server",
+  "version": "1.0.0",
+  "description": "Simple Puppeteer server for converting extracted HTML to PDF",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "puppeteer": "^22.6.5",
+    "cors": "^2.8.5"
+  },
+  "keywords": ["puppeteer", "pdf", "html", "resume"],
+  "author": "",
+  "license": "MIT"
+} 
