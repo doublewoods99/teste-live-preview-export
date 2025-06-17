@@ -65,119 +65,51 @@ export function extractPreviewContent(previewElement: HTMLElement, pageFormat: '
 }
 
 function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
-  // Find all page divs - they have specific characteristics from SimpleRollingPreview
-  const pageElements = Array.from(previewElement.children).filter(child => {
-    const element = child as HTMLElement;
-    const style = window.getComputedStyle(element);
-    
-    // Look for the page divs created in SimpleRollingPreview:
-    // - Fixed width and height
-    // - White background
-    // - Box shadow (for the paper effect)
-    // - Contains actual content (not debug info)
-    const hasPageStyling = 
-      style.backgroundColor === 'rgb(255, 255, 255)' &&
-      (style.boxShadow !== 'none' || style.border !== 'none') &&
-      style.position === 'relative';
-    
-    const hasContent = element.textContent && element.textContent.trim().length > 50; // Meaningful content
-    const isNotDebugInfo = !element.textContent?.includes('Debug: Total pages:') && 
-                          !element.textContent?.includes('Page count updated:');
-    
-    return hasPageStyling && hasContent && isNotDebugInfo;
-  }) as HTMLElement[];
-
-  console.log(`🔍 Found ${pageElements.length} page elements for extraction`);
+  console.log(`🔍 Starting extraction from simplified preview element`);
+  
+  // Since we simplified the structure, just extract the template content directly
+  const hasContent = previewElement.textContent && previewElement.textContent.trim().length > 50;
+  
+  if (!hasContent) {
+    console.error('❌ No meaningful content found in preview element');
+    console.log('Preview element details:', {
+      tagName: previewElement.tagName,
+      children: previewElement.children.length,
+      textLength: previewElement.textContent?.length || 0,
+      hasDataAttribute: previewElement.hasAttribute('data-template-preview')
+    });
+    return [];
+  }
   
   // Template detection for debugging
   const previewContent = previewElement.textContent || '';
-  const hasModernSidebar = previewContent.includes('SKILLS') && previewElement.querySelector('[style*="background"]');
-  const hasClassicBorder = previewElement.querySelector('[style*="border-bottom"]');
-  
-  console.log('🎨 Template detection:', {
-    possibleModern: hasModernSidebar,
-    possibleClassic: hasClassicBorder,
-    contentSample: previewContent.substring(0, 100) + '...'
+  console.log('🎨 Content found:', {
+    contentLength: previewContent.length,
+    contentSample: previewContent.substring(0, 100) + '...',
+    hasTemplateData: previewElement.hasAttribute('data-template-preview')
   });
   
-  const extractedPages: ExtractedPage[] = [];
-
-  if (pageElements.length === 0) {
-    console.error('❌ No valid page elements found for extraction');
-    return extractedPages;
-  }
-
-  // Handle based on number of pages found
-  if (pageElements.length === 1) {
-    // Single page - extract the full content cleanly
-    const pageElement = pageElements[0];
-    const clonedPage = pageElement.cloneNode(true) as HTMLElement;
-    
-    // Clean up page numbers and preview-specific styling
-    const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
-    pageNumbers.forEach(pageNum => {
-      if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
-        pageNum.remove();
-      }
-    });
-    
-    // Remove preview-specific styling but keep layout
-    clonedPage.style.boxShadow = 'none';
-    clonedPage.style.border = 'none';
-    clonedPage.style.overflow = 'visible';
-    
-    extractedPages.push({
-      html: clonedPage.outerHTML,
-      pageNumber: 1
-    });
-    
-    console.log(`✅ Extracted single page content (${clonedPage.textContent?.length} characters)`);
-  } else {
-    // Multi-page - FIXED: Instead of duplicating content, just extract the template ONCE
-    console.log(`📄 Processing ${pageElements.length} pages for extraction`);
-    console.log(`⚠️ Multi-page detected - extracting unified content to prevent duplication`);
-    
-    // Get the first page and extract the template content properly
-    const firstPage = pageElements[0];
-    const clonedPage = firstPage.cloneNode(true) as HTMLElement;
-    
-    // Clean up page numbers
-    const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
-    pageNumbers.forEach(pageNum => {
-      if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
-        pageNum.remove();
-      }
-    });
-    
-    // For multi-page, get the clean template content WITHOUT transforms
-    const contentDiv = clonedPage.querySelector('div[style*="transform"]') as HTMLElement;
-    if (contentDiv) {
-      // Get the template content but don't duplicate it
-      const templateContent = contentDiv.cloneNode(true) as HTMLElement;
-      templateContent.style.transform = '';
-      templateContent.style.position = 'relative';
-      
-      // Replace the page content with clean template content
-      clonedPage.innerHTML = templateContent.innerHTML;
-    }
-    
-    // Clean up preview-specific styling
-    clonedPage.style.transform = '';
-    clonedPage.style.overflow = 'visible';
-    clonedPage.style.position = 'relative';
-    clonedPage.style.boxShadow = 'none';
-    clonedPage.style.border = 'none';
-    
-    // Extract only ONE unified page with all content - PDF will handle page breaks naturally
-    extractedPages.push({
-      html: clonedPage.outerHTML,
-      pageNumber: 1
-    });
-    
-    console.log(`✅ Extracted unified multi-page content (${clonedPage.textContent?.length} characters)`);
-    console.log(`📋 Note: PDF engine will handle page breaks automatically - no duplication`);
-  }
-
+  // Clone the preview element and clean it up for PDF
+  const clonedElement = previewElement.cloneNode(true) as HTMLElement;
+  
+  // Remove any preview-specific styling
+  clonedElement.style.transform = '';
+  clonedElement.style.boxShadow = 'none';
+  clonedElement.style.border = 'none';
+  clonedElement.style.overflow = 'visible';
+  clonedElement.style.margin = '0';
+  clonedElement.style.padding = '0';
+  
+  // Remove the data attribute as it's not needed in PDF
+  clonedElement.removeAttribute('data-template-preview');
+  
+  const extractedPages: ExtractedPage[] = [{
+    html: clonedElement.outerHTML,
+    pageNumber: 1
+  }];
+  
+  console.log(`✅ Extracted simplified content (${clonedElement.textContent?.length} characters)`);
+  
   return extractedPages;
 }
 
