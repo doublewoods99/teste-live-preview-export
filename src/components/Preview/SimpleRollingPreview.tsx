@@ -13,12 +13,10 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
     const { selectedTemplateId } = useResumeStore();
     const measureRef = useRef<HTMLDivElement>(null);
     const [pageCount, setPageCount] = useState(1);
+    const [isCalculating, setIsCalculating] = useState(false);
     
     const template = getTemplate(selectedTemplateId);
     const layout = calculateLayoutMeasurements(resume.format);
-    
-    // Convert pt to px (for future use)
-    // const toPx = (pt: number) => `${pt * 1.35}px`;
     
     // Page dimensions - templates handle their own margins
     const pageWidth = layout.pageWidthPt * 1.35;
@@ -30,25 +28,37 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
     
     // Measure content and determine page count
     useEffect(() => {
-      if (measureRef.current) {
-        const actualContentHeight = measureRef.current.scrollHeight;
-        const pagesNeeded = Math.ceil(actualContentHeight / contentHeight);
+      if (measureRef.current && !isCalculating) {
+        setIsCalculating(true);
         
-        // DEBUG: Log pagination calculations
-        console.log('🔍 PAGINATION DEBUG:', {
-          actualContentHeight: actualContentHeight,
-          pageHeight: pageHeight,
-          contentHeight: contentHeight,
-          pagesNeeded: pagesNeeded,
-          ratio: actualContentHeight / contentHeight,
-          pageHeightPt: layout.pageHeightPt,
-          marginTopPt: layout.marginTopPt,
-          marginBottomPt: layout.marginBottomPt
-        });
+        // Small delay to ensure DOM is fully rendered
+        const measureTimeout = setTimeout(() => {
+          if (measureRef.current) {
+            const actualContentHeight = measureRef.current.scrollHeight;
+            const pagesNeeded = Math.ceil(actualContentHeight / contentHeight);
+            
+            // Only log when there's a significant change (reduce spam)
+            const newPageCount = Math.max(1, pagesNeeded);
+            if (newPageCount !== pageCount) {
+              console.log('📄 Page count updated:', {
+                pages: newPageCount,
+                contentHeight: Math.round(actualContentHeight),
+                pageHeight: Math.round(contentHeight),
+                reason: newPageCount > pageCount ? 'Content expanded' : 'Content reduced'
+              });
+            }
+            
+            setPageCount(newPageCount);
+            setIsCalculating(false);
+          }
+        }, 100);
         
-        setPageCount(Math.max(1, pagesNeeded));
+        return () => {
+          clearTimeout(measureTimeout);
+          setIsCalculating(false);
+        };
       }
-    }, [resume, selectedTemplateId, contentHeight, pageHeight, layout]);
+    }, [resume.content, selectedTemplateId, contentHeight, pageCount, isCalculating]);
 
     if (!template) {
       return <div>Template not found</div>;
@@ -58,20 +68,26 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
     
     return (
       <div ref={ref} style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-        {/* Hidden measurement container */}
+        {/* Hidden measurement container - exactly matches PDF export dimensions */}
         <div 
           ref={measureRef}
           style={{ 
             position: 'absolute', 
             top: '-9999px', 
             width: `${contentWidth}px`,
-            visibility: 'hidden'
+            visibility: 'hidden',
+            // Mirror PDF @page CSS rules for accurate measurement
+            fontSize: `${layout.fontSizePt * 1.35}px`,
+            lineHeight: layout.fontSizePt * 1.35 * 1.4 + 'px',
+            fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
+                        resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
+                        'Arial, Helvetica, sans-serif'
           }}
         >
           <TemplateComponent resume={resume} />
         </div>
 
-        {/* Generate pages */}
+        {/* Generate pages with improved page break simulation */}
         {Array.from({ length: pageCount }, (_, pageIndex) => (
           <div
             key={pageIndex + 1}
@@ -82,6 +98,8 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
               position: 'relative',
               overflow: 'hidden',
+              // Add subtle border to show page boundaries
+              border: '1px solid #f0f0f0'
             }}
           >
             {/* Page number */}
@@ -90,10 +108,13 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
               bottom: '10px',
               right: '20px',
               fontSize: '10px',
-              color: '#666',
+              color: '#999',
               zIndex: 1000,
+              backgroundColor: 'rgba(255, 255, 255, 0.8)',
+              padding: '2px 4px',
+              borderRadius: '2px'
             }}>
-              {pageIndex + 1}
+              Page {pageIndex + 1} of {pageCount}
             </div>
 
             {/* Content with proper offset for this page */}
@@ -101,6 +122,12 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
               style={{ 
                 transform: `translateY(-${pageIndex * pageHeight}px)`,
                 width: '100%',
+                // Ensure consistent font rendering with PDF export
+                fontSize: `${layout.fontSizePt * 1.35}px`,
+                lineHeight: 1.4,
+                fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
+                            resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
+                            'Arial, Helvetica, sans-serif'
               }}
             >
               <TemplateComponent resume={resume} />

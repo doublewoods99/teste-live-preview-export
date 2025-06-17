@@ -36,23 +36,24 @@ export function extractPreviewContent(previewElement: HTMLElement, pageFormat: '
 }
 
 function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
-  // Find all page divs - they have specific characteristics from PaginatedPreview
+  // Find all page divs - they have specific characteristics from SimpleRollingPreview
   const pageElements = Array.from(previewElement.children).filter(child => {
     const element = child as HTMLElement;
     const style = window.getComputedStyle(element);
     
-    // Look for the page divs created in PaginatedPreview:
+    // Look for the page divs created in SimpleRollingPreview:
     // - Fixed width and height
     // - White background
     // - Box shadow (for the paper effect)
     // - Contains actual content (not debug info)
     const hasPageStyling = 
       style.backgroundColor === 'rgb(255, 255, 255)' &&
-      style.boxShadow !== 'none' &&
+      (style.boxShadow !== 'none' || style.border !== 'none') &&
       style.position === 'relative';
     
     const hasContent = element.textContent && element.textContent.trim().length > 50; // Meaningful content
-    const isNotDebugInfo = !element.textContent?.includes('Debug: Total pages:');
+    const isNotDebugInfo = !element.textContent?.includes('Debug: Total pages:') && 
+                          !element.textContent?.includes('Page count updated:');
     
     return hasPageStyling && hasContent && isNotDebugInfo;
   }) as HTMLElement[];
@@ -68,10 +69,28 @@ function extractIndividualPages(previewElement: HTMLElement): ExtractedPage[] {
     // Clean up any page numbers or artifacts that shouldn't be in PDF
     const pageNumbers = clonedPage.querySelectorAll('div[style*="position: absolute"]');
     pageNumbers.forEach(pageNum => {
-      if (pageNum.textContent?.includes('Page ')) {
+      if (pageNum.textContent?.includes('Page ') || pageNum.textContent?.includes('of ')) {
         pageNum.remove();
       }
     });
+    
+    // For SimpleRollingPreview, extract the actual content from the transformed div
+    const contentDiv = clonedPage.querySelector('div[style*="transform"]');
+    if (contentDiv) {
+      // Remove the transform and extract just the template content
+      const templateContent = contentDiv.cloneNode(true) as HTMLElement;
+      templateContent.style.transform = '';
+      
+      // Replace the cloned page with just the template content
+      clonedPage.innerHTML = templateContent.innerHTML;
+      
+      // Apply the same styling as the original page but without transforms
+      clonedPage.style.transform = '';
+      clonedPage.style.overflow = 'visible';
+      clonedPage.style.position = 'relative';
+      clonedPage.style.boxShadow = 'none';
+      clonedPage.style.border = 'none';
+    }
     
     extractedPages.push({
       html: clonedPage.outerHTML,
@@ -111,9 +130,11 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
   }
 
   // Create clean page structure for PDF - each page should fit exactly on PDF page
-  const combinedHTML = pages.map((page) => {
-    // Remove the wrapper div styling from the original page and just use the content
-    return page.html;
+  const combinedHTML = pages.map((page, index) => {
+    // Wrap each page in a container that mimics the exact preview structure
+    return `<div class="pdf-page" data-page="${index + 1}">
+      ${page.html}
+    </div>`;
   }).join('\n\n');
 
   return `<!DOCTYPE html>
@@ -126,40 +147,66 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
     /* Preserve all original CSS from the application */
     ${css}
     
-    /* PDF-specific overrides - remove all container styling */
+    /* PDF-specific optimizations for exact preview matching */
+    * {
+      box-sizing: border-box;
+    }
+    
     body {
       margin: 0 !important;
       padding: 0 !important;
       background: white !important;
       display: block !important;
+      font-size: inherit !important;
+      line-height: inherit !important;
+      font-family: inherit !important;
     }
     
-    /* Ensure page divs break properly */
+    /* PDF page settings */
     @page {
       size: ${pageFormat};
       margin: 0;
     }
     
-    /* Target the actual page divs from PaginatedPreview */
-    div[style*="box-shadow"]:not(:last-child) {
+    /* Page break controls for PDF */
+    .pdf-page {
       page-break-after: always !important;
-    }
-    
-    div[style*="box-shadow"] {
       page-break-inside: avoid !important;
       margin: 0 !important;
+      padding: 0 !important;
       box-shadow: none !important;
+      border: none !important;
+      background: white !important;
+      min-height: 100vh;
+      width: 100%;
+      overflow: visible !important;
+    }
+    
+    .pdf-page:last-child {
+      page-break-after: avoid !important;
+    }
+    
+    /* Ensure consistent text rendering */
+    .pdf-page * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    /* Remove any remaining page artifacts */
+    .pdf-page div[style*="position: absolute"] {
+      display: none !important;
     }
     
     @media print {
-      div[style*="box-shadow"]:not(:last-child) {
+      .pdf-page {
         page-break-after: always !important;
-      }
-      
-      div[style*="box-shadow"] {
         page-break-inside: avoid !important;
         margin: 0 !important;
         box-shadow: none !important;
+      }
+      
+      .pdf-page:last-child {
+        page-break-after: avoid !important;
       }
     }
   </style>
