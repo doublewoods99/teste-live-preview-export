@@ -1,4 +1,4 @@
-import { calculateLayoutMeasurements } from './measurements';
+import { calculateLayoutMeasurements, PAGE } from './measurements';
 import type { ResumeFormat } from '../../types/resume';
 
 // Enhanced content measurement for accurate pagination
@@ -19,8 +19,8 @@ export class PaginationCalculator {
 
   constructor(format: ResumeFormat) {
     this.layout = calculateLayoutMeasurements(format);
-    // Convert content height from points to pixels (using 1.35 conversion factor)
-    this.contentHeightPx = this.layout.contentHeightPt * 1.35;
+    // Convert content height from points to pixels using proper DPI conversion
+    this.contentHeightPx = PAGE.toPx(this.layout.contentHeightPt);
     this.setupMeasureContainer();
   }
 
@@ -32,10 +32,10 @@ export class PaginationCalculator {
     this.measureContainer.style.visibility = 'hidden';
     this.measureContainer.style.top = '-9999px';
     this.measureContainer.style.left = '-9999px';
-    this.measureContainer.style.width = `${this.layout.contentWidthPt * 1.35}px`;
+    this.measureContainer.style.width = `${PAGE.toPx(this.layout.contentWidthPt)}px`;
     this.measureContainer.style.fontFamily = this.getFontFamily();
-    this.measureContainer.style.fontSize = `${this.layout.fontSizePt * 1.35}px`;
-    this.measureContainer.style.lineHeight = '1.4';
+    this.measureContainer.style.fontSize = `${PAGE.toPx(this.layout.fontSizePt)}px`;
+    this.measureContainer.style.lineHeight = String(this.layout.lineHeightPt);
     
     document.body.appendChild(this.measureContainer);
   }
@@ -83,7 +83,7 @@ export class PaginationCalculator {
 
   // Estimate heights for common resume elements (used as fallback)
   public estimateElementHeight(elementType: 'header' | 'section-title' | 'job' | 'education' | 'skills', content?: any): number {
-    const baseLineHeight = this.layout.lineHeightPt * 1.35;
+    const baseLineHeight = PAGE.toPx(this.layout.lineHeightPt);
     
     switch (elementType) {
       case 'header':
@@ -110,15 +110,15 @@ export class PaginationCalculator {
   }
 }
 
-// Page size constants in pixels (converted from points)
+// Page size constants in pixels (converted from points using proper DPI)
 export const PAGE_SIZES = {
   A4: {
-    widthPx: 595.28 * 1.35,
-    heightPx: 841.89 * 1.35,
+    widthPx: PAGE.toPx(595.28),
+    heightPx: PAGE.toPx(841.89),
   },
   Letter: {
-    widthPx: 612 * 1.35,
-    heightPx: 792 * 1.35,
+    widthPx: PAGE.toPx(612),
+    heightPx: PAGE.toPx(792),
   },
 } as const;
 

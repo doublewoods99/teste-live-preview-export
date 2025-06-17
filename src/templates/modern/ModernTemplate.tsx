@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ResumeSchema } from '../../types/resume';
-import { calculateLayoutMeasurements } from '../../utils/layout/measurements';
+import { calculateLayoutMeasurements, PAGE } from '../../utils/layout/measurements';
 
 interface ModernTemplateProps {
   resume: ResumeSchema;
@@ -9,8 +9,8 @@ interface ModernTemplateProps {
 export const ModernTemplate: React.FC<ModernTemplateProps> = ({ resume }) => {
   const layout = calculateLayoutMeasurements(resume.format);
 
-  // Convert pt measurements to pixels for web display
-  const toPx = (pt: number) => `${pt * 1.35}px`;
+  // Use proper DPI conversion from measurements utility instead of hardcoded 1.35
+  const toPx = (pt: number) => `${PAGE.toPx(pt)}px`;
 
   const styles = {
     container: {
@@ -23,14 +23,14 @@ export const ModernTemplate: React.FC<ModernTemplateProps> = ({ resume }) => {
       lineHeight: 1.4,
       color: '#2d3748',
       position: 'relative' as const,
-      height: `${layout.pageHeightPt * 1.35}px`,
+      height: `${PAGE.toPx(layout.pageHeightPt)}px`,
     },
     sidebar: {
       backgroundColor: '#4a5568',
       color: '#ffffff',
       padding: `${toPx(layout.marginTopPt)} ${toPx(layout.marginRightPt)} ${toPx(layout.marginBottomPt)} ${toPx(layout.marginLeftPt)}`,
       width: '35%',
-      minHeight: `${layout.pageHeightPt * 1.35}px`,
+      minHeight: `${PAGE.toPx(layout.pageHeightPt)}px`,
       boxSizing: 'border-box' as const,
       overflow: 'hidden',
       position: 'absolute' as const,

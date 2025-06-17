@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ResumeSchema } from '../../types/resume';
-import { calculateLayoutMeasurements } from '../../utils/layout/measurements';
+import { calculateLayoutMeasurements, PAGE } from '../../utils/layout/measurements';
 
 interface ClassicTemplateProps {
   resume: ResumeSchema;
@@ -9,8 +9,8 @@ interface ClassicTemplateProps {
 export const ClassicTemplate: React.FC<ClassicTemplateProps> = ({ resume }) => {
   const layout = calculateLayoutMeasurements(resume.format);
 
-  // Convert pt measurements to pixels for web display
-  const toPx = (pt: number) => `${pt * 1.35}px`;
+  // Use proper DPI conversion from measurements utility instead of hardcoded 1.35
+  const toPx = (pt: number) => `${PAGE.toPx(pt)}px`;
 
   const styles = {
     container: {

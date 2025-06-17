@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState } from 'react';
 import type { ResumeSchema } from '../../types/resume';
 import { useResumeStore } from '../../context/resumeStore';
 import { getTemplate } from '../../utils/templateRegistry';
-import { calculateLayoutMeasurements } from '../../utils/layout/measurements';
+import { calculateLayoutMeasurements, PAGE } from '../../utils/layout/measurements';
 
 interface SimpleRollingPreviewProps {
   resume: ResumeSchema;
@@ -19,12 +19,13 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
     const layout = calculateLayoutMeasurements(resume.format);
     
     // Page dimensions - templates handle their own margins
-    const pageWidth = layout.pageWidthPt * 1.35;
-    const pageHeight = layout.pageHeightPt * 1.35;
+    // Use proper DPI conversion from measurements utility instead of hardcoded 1.35
+    const pageWidth = PAGE.toPx(layout.pageWidthPt);
+    const pageHeight = PAGE.toPx(layout.pageHeightPt);
     
     // Full page dimensions for template-controlled margins
-    const contentWidth = layout.pageWidthPt * 1.35;
-    const contentHeight = layout.pageHeightPt * 1.35;
+    const contentWidth = PAGE.toPx(layout.pageWidthPt);
+    const contentHeight = PAGE.toPx(layout.pageHeightPt);
     
     // Measure content and determine page count
     useEffect(() => {
@@ -83,8 +84,8 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
             width: `${contentWidth}px`,
             visibility: 'hidden',
             // Mirror PDF @page CSS rules for accurate measurement
-            fontSize: `${layout.fontSizePt * 1.35}px`,
-            lineHeight: layout.fontSizePt * 1.35 * 1.4 + 'px',
+            fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
+            lineHeight: PAGE.toPx(layout.fontSizePt) * 1.4 + 'px',
             fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
                         resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
                         'Arial, Helvetica, sans-serif'
@@ -126,7 +127,7 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
             <div 
               style={{ 
                 width: '100%',
-                fontSize: `${layout.fontSizePt * 1.35}px`,
+                fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
                 lineHeight: 1.4,
                 fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
                             resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 
@@ -172,7 +173,7 @@ export const SimpleRollingPreview = React.forwardRef<HTMLDivElement, SimpleRolli
                 style={{ 
                   transform: `translateY(-${pageIndex * pageHeight}px)`,
                   width: '100%',
-                  fontSize: `${layout.fontSizePt * 1.35}px`,
+                  fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
                   lineHeight: 1.4,
                   fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, serif' : 
                               resume.format.fontFamily === 'Georgia' ? 'Times, serif' : 

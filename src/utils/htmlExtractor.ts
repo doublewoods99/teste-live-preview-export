@@ -204,6 +204,10 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       /* Ensure consistent font rendering between preview and PDF */
       -webkit-print-color-adjust: exact !important;
       color-adjust: exact !important;
+      /* Force consistent font rendering with exact metrics */
+      text-rendering: optimizeLegibility !important;
+      -webkit-font-smoothing: antialiased !important;
+      -moz-osx-font-smoothing: grayscale !important;
     }
     
     /* PDF page settings - no margins since template handles them */
@@ -219,6 +223,8 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       position: relative;
       /* Ensure content fits properly */
       box-sizing: border-box;
+      /* Force exact font metrics matching preview */
+      font-synthesis: none !important;
     }
     
     .pdf-page-break {
@@ -233,10 +239,22 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
       border: none !important;
     }
     
-    /* Ensure consistent spacing */
+    /* Ensure consistent spacing - critical for layout matching */
     .pdf-page {
       margin: 0 !important;
       padding: 0 !important;
+    }
+    
+    /* Force consistent font metrics across all text elements */
+    .pdf-page *,
+    .pdf-page *:before,
+    .pdf-page *:after {
+      font-synthesis: none !important;
+      text-rendering: optimizeLegibility !important;
+      /* Prevent any browser font adjustments */
+      font-size-adjust: none !important;
+      font-stretch: normal !important;
+      font-variant: normal !important;
     }
     
     /* Print media query for additional PDF optimizations */
@@ -251,6 +269,12 @@ function createOptimizedHTMLDocument(pages: ExtractedPage[], css: string, pageFo
         padding: 0 !important;
         width: 100% !important;
         height: 100vh !important;
+      }
+      
+      /* Ensure no print scaling */
+      @page {
+        margin: 0;
+        size: ${pageFormat};
       }
     }
   </style>

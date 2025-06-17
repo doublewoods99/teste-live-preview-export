@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ResumeSchema } from '../../types/resume';
-import { calculateLayoutMeasurements } from '../../utils/layout/measurements';
+import { calculateLayoutMeasurements, PAGE } from '../../utils/layout/measurements';
 
 interface ReactComponentsProps {
   resume: ResumeSchema;
@@ -10,18 +10,18 @@ interface ReactComponentsProps {
 export const ResumePreviewComponents: React.FC<ReactComponentsProps> = ({ resume }) => {
   const layout = calculateLayoutMeasurements(resume.format);
 
-  // Convert layout measurements to CSS styles for web display
+  // Convert layout measurements to CSS styles for web display using proper DPI conversion
   const styles = {
     page: {
       fontFamily: resume.format.fontFamily === 'Times New Roman' ? 'Times, "Times New Roman", serif' : 
                   resume.format.fontFamily === 'Georgia' ? 'Georgia, serif' : 
                   'Arial, sans-serif',
-      fontSize: `${layout.fontSizePt}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
       lineHeight: 1.4,
-      padding: `${layout.marginTopPt}px ${layout.marginRightPt}px ${layout.marginBottomPt}px ${layout.marginLeftPt}px`,
+      padding: `${PAGE.toPx(layout.marginTopPt)}px ${PAGE.toPx(layout.marginRightPt)}px ${PAGE.toPx(layout.marginBottomPt)}px ${PAGE.toPx(layout.marginLeftPt)}px`,
       backgroundColor: '#ffffff',
-      width: `${layout.pageWidthPt}px`,
-      minHeight: `${layout.pageHeightPt}px`,
+      width: `${PAGE.toPx(layout.pageWidthPt)}px`,
+      minHeight: `${PAGE.toPx(layout.pageHeightPt)}px`,
       margin: '0 auto',
       boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)',
       borderRadius: '8px',
@@ -30,61 +30,61 @@ export const ResumePreviewComponents: React.FC<ReactComponentsProps> = ({ resume
     
     header: {
       textAlign: 'center' as const,
-      marginBottom: `${layout.sectionSpacingPt}px`,
+      marginBottom: `${PAGE.toPx(layout.sectionSpacingPt)}px`,
     } as React.CSSProperties,
     
     name: {
-      fontSize: `${layout.fontSizePt * 1.5}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt * 1.5)}px`,
       fontWeight: 'bold',
-      marginBottom: `${layout.lineHeightPt * 0.5}px`,
+      marginBottom: `${PAGE.toPx(layout.lineHeightPt * 0.5)}px`,
       color: '#333333',
       margin: 0,
     } as React.CSSProperties,
     
     title: {
-      fontSize: `${layout.fontSizePt}px`,
-      marginBottom: `${layout.lineHeightPt}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
+      marginBottom: `${PAGE.toPx(layout.lineHeightPt)}px`,
       color: '#666666',
       margin: 0,
     } as React.CSSProperties,
     
     contact: {
-      fontSize: `${layout.fontSizePt * 0.9}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt * 0.9)}px`,
       color: '#666666',
       margin: 0,
     } as React.CSSProperties,
     
     sectionTitle: {
-      fontSize: `${layout.fontSizePt * 1.2}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt * 1.2)}px`,
       fontWeight: 'bold',
       textTransform: 'uppercase' as const,
       borderBottom: '0.5px solid #cccccc',
       paddingBottom: '2px',
       margin: 0,
-      marginBottom: `${layout.itemSpacingPt}px`,
+      marginBottom: `${PAGE.toPx(layout.itemSpacingPt)}px`,
     } as React.CSSProperties,
     
     section: {
-      marginBottom: `${layout.sectionSpacingPt}px`,
+      marginBottom: `${PAGE.toPx(layout.sectionSpacingPt)}px`,
     } as React.CSSProperties,
     
     jobTitle: {
-      fontSize: `${layout.fontSizePt}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
       fontWeight: 'bold',
-      marginBottom: `${layout.itemSpacingPt * 0.5}px`,
+      marginBottom: `${PAGE.toPx(layout.itemSpacingPt * 0.5)}px`,
       margin: 0,
     } as React.CSSProperties,
     
     jobDetails: {
-      fontSize: `${layout.fontSizePt * 0.9}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt * 0.9)}px`,
       color: '#666666',
       margin: 0,
-      marginBottom: `${layout.itemSpacingPt * 0.5}px`,
+      marginBottom: `${PAGE.toPx(layout.itemSpacingPt * 0.5)}px`,
     } as React.CSSProperties,
     
     bulletPoint: {
-      fontSize: `${layout.fontSizePt}px`,
-      marginBottom: `${layout.itemSpacingPt * 0.25}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
+      marginBottom: `${PAGE.toPx(layout.itemSpacingPt * 0.25)}px`,
       paddingLeft: '15px',
       position: 'relative' as const,
     } as React.CSSProperties,
@@ -100,28 +100,28 @@ export const ResumePreviewComponents: React.FC<ReactComponentsProps> = ({ resume
     } as React.CSSProperties,
     
     eduTitle: {
-      fontSize: `${layout.fontSizePt}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
       fontWeight: 'bold',
       margin: 0,
     } as React.CSSProperties,
     
     eduDetails: {
-      fontSize: `${layout.fontSizePt * 0.9}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt * 0.9)}px`,
       color: '#666666',
       margin: 0,
     } as React.CSSProperties,
     
     skillsText: {
-      fontSize: `${layout.fontSizePt}px`,
+      fontSize: `${PAGE.toPx(layout.fontSizePt)}px`,
       margin: 0,
     } as React.CSSProperties,
     
     jobContainer: {
-      marginBottom: `${layout.itemSpacingPt}px`,
+      marginBottom: `${PAGE.toPx(layout.itemSpacingPt)}px`,
     } as React.CSSProperties,
     
     eduContainer: {
-      marginBottom: `${layout.itemSpacingPt}px`,
+      marginBottom: `${PAGE.toPx(layout.itemSpacingPt)}px`,
     } as React.CSSProperties,
   };
 

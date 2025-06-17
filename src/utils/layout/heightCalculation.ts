@@ -1,14 +1,14 @@
 import type { ResumeSchema } from '../../types/resume';
-import { calculateLayoutMeasurements } from './measurements';
+import { calculateLayoutMeasurements, PAGE } from './measurements';
 
-// Shared height calculation interface
-export interface ElementHeightEstimate {
-  heightPx: number;  // Height in pixels for preview
-  heightPt: number;  // Height in points (for precision)
+export interface ElementMeasurement {
+  widthPt: number;
+  heightPt: number;
+  heightPx: number;
 }
 
-// Conversion factor between pixels and points (1.35 px = 1 pt in our system)
-const PX_TO_PT_FACTOR = 1 / 1.35;
+// Use proper DPI conversion factor from measurements utility
+const PX_TO_PT_FACTOR = 1 / (PAGE.toPx(1));
 
 export class SharedHeightCalculator {
   private layout: ReturnType<typeof calculateLayoutMeasurements>;
@@ -17,19 +17,22 @@ export class SharedHeightCalculator {
     this.layout = calculateLayoutMeasurements(resume.format);
   }
 
-  // Main method to estimate element heights
-  estimateElementHeight(elementType: string, content?: any): ElementHeightEstimate {
-    const heightPx = this.getHeightInPixels(elementType, content);
+  public convertPixelsToPoints(heightPx: number): number {
     const heightPt = heightPx * PX_TO_PT_FACTOR;
+    return heightPt;
+  }
 
+  public estimateElementHeight(elementType: string, content?: any): ElementMeasurement {
+    const heightPx = this.getHeightInPixels(elementType, content);
     return {
-      heightPx,
-      heightPt
+      widthPt: this.layout.contentWidthPt,
+      heightPt: this.convertPixelsToPoints(heightPx),
+      heightPx
     };
   }
 
   private getHeightInPixels(elementType: string, content?: any): number {
-    const baseLineHeight = this.layout.lineHeightPt * 1.35; // Convert to pixels
+    const baseLineHeight = PAGE.toPx(this.layout.lineHeightPt); // Convert to pixels using proper DPI
 
     switch (elementType) {
       case 'header':
@@ -63,18 +66,11 @@ export class SharedHeightCalculator {
     }
   }
 
-  // Get available content height
-  getContentHeight(): { heightPx: number; heightPt: number } {
+  public getPageDimensions(): { widthPx: number; heightPx: number } {
     return {
-      heightPx: this.layout.contentHeightPt * 1.35,
-      heightPt: this.layout.contentHeightPt
+      widthPx: PAGE.toPx(this.layout.pageWidthPt),
+      heightPx: PAGE.toPx(this.layout.contentHeightPt),
     };
-  }
-
-  // Debug method to compare heights
-  debugHeights(elementType: string, content?: any): void {
-    const estimate = this.estimateElementHeight(elementType, content);
-    console.log(`${elementType}: ${estimate.heightPx}px / ${estimate.heightPt}pt`);
   }
 }
 

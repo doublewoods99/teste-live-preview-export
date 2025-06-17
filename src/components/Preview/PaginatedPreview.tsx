@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { ResumeSchema } from '../../types/resume';
-import { calculateLayoutMeasurements } from '../../utils/layout/measurements';
+import { calculateLayoutMeasurements, PAGE } from '../../utils/layout/measurements';
 // import { createPageBreakDetector } from '../../utils/layout/pagination';
 import { createHeightCalculator } from '../../utils/layout/heightCalculation';
 
@@ -20,8 +20,8 @@ const PaginatedPreviewComponent = React.forwardRef<HTMLDivElement, PaginatedPrev
   const layout = calculateLayoutMeasurements(resume.format);
   const heightCalculator = createHeightCalculator(resume);
 
-  // Convert pt measurements to pixels for web display
-  const toPx = (pt: number) => `${pt * 1.35}px`;
+  // Use proper DPI conversion from measurements utility instead of hardcoded 1.35
+  const toPx = (pt: number) => `${PAGE.toPx(pt)}px`;
 
   const pageStyles = {
     container: {
@@ -126,10 +126,10 @@ const PaginatedPreviewComponent = React.forwardRef<HTMLDivElement, PaginatedPrev
   };
 
   // Calculate available content height (page height minus margins)
-  const contentHeightPx = layout.pageHeightPt * 1.35 - layout.marginTopPt * 1.35 - layout.marginBottomPt * 1.35;
+  const contentHeightPx = PAGE.toPx(layout.pageHeightPt) - PAGE.toPx(layout.marginTopPt) - PAGE.toPx(layout.marginBottomPt);
   
   // Debug: Log the content height
-  console.log(`Content height: ${contentHeightPx}px, Page height: ${layout.pageHeightPt * 1.35}px`);
+  console.log(`Content height: ${contentHeightPx}px, Page height: ${PAGE.toPx(layout.pageHeightPt)}px`);
 
   // Function to measure element height (commented out - not currently used)
   /*
